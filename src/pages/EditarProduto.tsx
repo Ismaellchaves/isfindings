@@ -1,11 +1,10 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, Save } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { v4 as uuidv4 } from 'uuid';
 import { toast } from "@/hooks/use-toast";
 import StatusBar from '@/components/StatusBar';
 import { Button } from '@/components/ui/button';
@@ -30,8 +29,9 @@ const produtoSchema = z.object({
 
 type ProdutoFormValues = z.infer<typeof produtoSchema>;
 
-const CadastrarProduto: React.FC = () => {
+const EditarProduto: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [isLoading, setIsLoading] = useState(false);
 
   // Configuração do formulário
@@ -50,47 +50,91 @@ const CadastrarProduto: React.FC = () => {
     },
   });
 
+  useEffect(() => {
+    // Carrega os produtos do localStorage
+    const storedProdutos = localStorage.getItem('produtos');
+    if (!storedProdutos) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível encontrar os produtos.",
+        variant: "destructive",
+      });
+      navigate('/admin/produtos');
+      return;
+    }
+
+    const produtos: Produto[] = JSON.parse(storedProdutos);
+    const produto = produtos.find(p => p.id === id);
+    
+    if (!produto) {
+      toast({
+        title: "Erro",
+        description: "Produto não encontrado.",
+        variant: "destructive",
+      });
+      navigate('/admin/produtos');
+      return;
+    }
+
+    // Preenche o formulário com os dados do produto
+    form.reset({
+      nome: produto.nome,
+      preco: produto.preco.toString(),
+      precoAntigo: produto.precoAntigo ? produto.precoAntigo.toString() : '',
+      categoria: produto.categoria,
+      descricao: produto.descricao,
+      imagem: produto.imagem,
+      link: produto.link || '',
+      cores: produto.cores ? produto.cores.join(', ') : '',
+      tamanhos: produto.tamanhos ? produto.tamanhos.join(', ') : '',
+    });
+  }, [id, navigate, form]);
+
   const onSubmit = (values: ProdutoFormValues) => {
     setIsLoading(true);
 
     try {
       // Formatar dados do produto
-      const novoProduto: Produto = {
-        id: uuidv4(), // Gera um ID único
+      const produtoAtualizado: Produto = {
+        id: id as string,
         nome: values.nome,
         preco: parseFloat(values.preco),
         precoAntigo: values.precoAntigo ? parseFloat(values.precoAntigo) : undefined,
         categoria: values.categoria,
         descricao: values.descricao || '',
-        imagem: values.imagem || 'https://via.placeholder.com/150',
+        imagem: values.imagem || '',
         link: values.link,
         cores: values.cores ? values.cores.split(',').map(cor => cor.trim()) : undefined,
         tamanhos: values.tamanhos ? values.tamanhos.split(',').map(tamanho => tamanho.trim()) : undefined,
-        data_publicacao: new Date().toISOString(),
         status: 'ativo',
       };
 
-      // Carrega os produtos existentes ou cria um array vazio
+      // Carrega os produtos existentes
       const storedProdutos = localStorage.getItem('produtos');
-      const produtos: Produto[] = storedProdutos ? JSON.parse(storedProdutos) : [];
+      if (!storedProdutos) throw new Error("Produtos não encontrados");
       
-      // Adiciona o novo produto
-      produtos.push(novoProduto);
+      const produtos: Produto[] = JSON.parse(storedProdutos);
+      
+      // Atualiza o produto
+      const index = produtos.findIndex(p => p.id === id);
+      if (index === -1) throw new Error("Produto não encontrado");
+      
+      produtos[index] = produtoAtualizado;
       
       // Salva no localStorage
       localStorage.setItem('produtos', JSON.stringify(produtos));
       
       toast({
-        title: "Produto cadastrado",
-        description: "O produto foi cadastrado com sucesso.",
+        title: "Produto atualizado",
+        description: "O produto foi atualizado com sucesso.",
       });
       
       navigate('/admin/produtos');
     } catch (error) {
-      console.error("Erro ao cadastrar produto:", error);
+      console.error("Erro ao atualizar produto:", error);
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao cadastrar o produto.",
+        description: "Ocorreu um erro ao atualizar o produto.",
         variant: "destructive",
       });
     } finally {
@@ -110,7 +154,7 @@ const CadastrarProduto: React.FC = () => {
             <ChevronLeft className="w-5 h-5 mr-1" />
             <span>Voltar</span>
           </button>
-          <h1 className="title-text">Cadastrar Produto</h1>
+          <h1 className="title-text">Editar Produto</h1>
           <div className="w-20"></div> {/* Spacer for alignment */}
         </div>
 
@@ -286,7 +330,7 @@ const CadastrarProduto: React.FC = () => {
                 disabled={isLoading}
               >
                 <Save size={18} />
-                {isLoading ? "Cadastrando..." : "Cadastrar Produto"}
+                {isLoading ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </form>
           </Form>
@@ -296,4 +340,4 @@ const CadastrarProduto: React.FC = () => {
   );
 };
 
-export default CadastrarProduto;
+export default EditarProduto;

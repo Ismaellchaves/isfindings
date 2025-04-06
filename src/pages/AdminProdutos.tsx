@@ -6,6 +6,17 @@ import StatusBar from '@/components/StatusBar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 import { Produto } from '@/lib/tipos';
 import { produtos } from '@/lib/dados';
 
@@ -14,41 +25,63 @@ const AdminProdutos: React.FC = () => {
   const [todosProdutos, setTodosProdutos] = useState<Produto[]>([]);
   const [produtosAtivos, setProdutosAtivos] = useState<Produto[]>([]);
   const [produtosInativos, setProdutosInativos] = useState<Produto[]>([]);
+  const [deleteProdutoId, setDeleteProdutoId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Inicializa com os produtos do arquivo de dados
-    setTodosProdutos(produtos);
+    // Carrega os produtos do localStorage, ou usa os padrões se não houver dados
+    const storedProdutos = localStorage.getItem('produtos');
+    const produtosData = storedProdutos ? JSON.parse(storedProdutos) : produtos;
+    
+    setTodosProdutos(produtosData);
     
     // Filtra produtos ativos (status === 'ativo' ou undefined/null)
-    const ativos = produtos.filter(p => p.status !== 'inativo');
+    const ativos = produtosData.filter((p: Produto) => p.status !== 'inativo');
     setProdutosAtivos(ativos);
     
     // Filtra produtos inativos
-    const inativos = produtos.filter(p => p.status === 'inativo');
+    const inativos = produtosData.filter((p: Produto) => p.status === 'inativo');
     setProdutosInativos(inativos);
   }, []);
 
-  const handleEdit = (produtoId: string) => {
-    // Navegar para página de edição (a ser implementada no futuro)
-    console.log("Editar produto:", produtoId);
-    // navigate(`/admin/produtos/editar/${produtoId}`);
+  const updateLocalStorage = (produtos: Produto[]) => {
+    localStorage.setItem('produtos', JSON.stringify(produtos));
   };
 
-  const handleDelete = (produtoId: string) => {
-    // Confirmar exclusão
-    if (window.confirm("Tem certeza que deseja excluir este produto?")) {
-      console.log("Produto excluído:", produtoId);
-      // Aqui você implementaria a exclusão real do produto
-      const produtosAtualizados = todosProdutos.filter(p => p.id !== produtoId);
-      setTodosProdutos(produtosAtualizados);
-      
-      // Atualiza as listas filtradas
-      const ativosAtualizados = produtosAtivos.filter(p => p.id !== produtoId);
-      setProdutosAtivos(ativosAtualizados);
-      
-      const inativosAtualizados = produtosInativos.filter(p => p.id !== produtoId);
-      setProdutosInativos(inativosAtualizados);
-    }
+  const handleEdit = (produtoId: string) => {
+    navigate(`/admin/produtos/editar/${produtoId}`);
+  };
+
+  const openDeleteDialog = (produtoId: string) => {
+    setDeleteProdutoId(produtoId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = () => {
+    if (!deleteProdutoId) return;
+    
+    // Atualiza as listas removendo o produto excluído
+    const produtosAtualizados = todosProdutos.filter(p => p.id !== deleteProdutoId);
+    setTodosProdutos(produtosAtualizados);
+    
+    const ativosAtualizados = produtosAtivos.filter(p => p.id !== deleteProdutoId);
+    setProdutosAtivos(ativosAtualizados);
+    
+    const inativosAtualizados = produtosInativos.filter(p => p.id !== deleteProdutoId);
+    setProdutosInativos(inativosAtualizados);
+    
+    // Atualiza o localStorage
+    updateLocalStorage(produtosAtualizados);
+    
+    // Feedback para o usuário
+    toast({
+      title: "Produto excluído",
+      description: "O produto foi excluído com sucesso.",
+    });
+    
+    // Fecha o diálogo
+    setDeleteDialogOpen(false);
+    setDeleteProdutoId(null);
   };
 
   // Componente de card de produto reutilizável
@@ -84,7 +117,7 @@ const AdminProdutos: React.FC = () => {
           <Button 
             variant="destructive" 
             size="sm" 
-            onClick={() => handleDelete(produto.id)}
+            onClick={() => openDeleteDialog(produto.id)}
             className="flex items-center"
           >
             <Trash2 className="h-4 w-4 mr-1" />
@@ -173,6 +206,23 @@ const AdminProdutos: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir produto</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
