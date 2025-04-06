@@ -13,6 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Produto } from '@/lib/tipos';
+import ProductCategorySelect from '@/components/ProductCategorySelect';
+import ProductImageUpload from '@/components/ProductImageUpload';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Esquema de validação do formulário usando Zod
 const produtoSchema = z.object({
@@ -21,10 +24,11 @@ const produtoSchema = z.object({
   precoAntigo: z.string().optional(),
   categoria: z.string().min(1, { message: 'Informe a categoria' }),
   descricao: z.string().optional(),
-  imagem: z.string().url({ message: 'URL inválida' }).optional(),
+  imagem: z.string().optional(),
   link: z.string().url({ message: 'URL inválida' }).min(1, { message: 'Informe o link' }),
   cores: z.string().optional(),
   tamanhos: z.string().optional(),
+  genero: z.enum(['masculino', 'feminino', 'unissex']).default('unissex'),
 });
 
 type ProdutoFormValues = z.infer<typeof produtoSchema>;
@@ -47,6 +51,7 @@ const EditarProduto: React.FC = () => {
       link: '',
       cores: '',
       tamanhos: '',
+      genero: 'unissex',
     },
   });
 
@@ -87,6 +92,7 @@ const EditarProduto: React.FC = () => {
       link: produto.link || '',
       cores: produto.cores ? produto.cores.join(', ') : '',
       tamanhos: produto.tamanhos ? produto.tamanhos.join(', ') : '',
+      genero: produto.genero || 'unissex',
     });
   }, [id, navigate, form]);
 
@@ -106,6 +112,7 @@ const EditarProduto: React.FC = () => {
         link: values.link,
         cores: values.cores ? values.cores.split(',').map(cor => cor.trim()) : undefined,
         tamanhos: values.tamanhos ? values.tamanhos.split(',').map(tamanho => tamanho.trim()) : undefined,
+        genero: values.genero,
         status: 'ativo',
       };
 
@@ -217,46 +224,62 @@ const EditarProduto: React.FC = () => {
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="categoria"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoria*</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Calçados, Roupas, Acessórios" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="categoria"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categoria*</FormLabel>
+                      <FormControl>
+                        <ProductCategorySelect 
+                          value={field.value} 
+                          onChange={field.onChange} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="genero"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gênero</FormLabel>
+                      <Select 
+                        value={field.value} 
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o gênero" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="masculino">Masculino</SelectItem>
+                          <SelectItem value="feminino">Feminino</SelectItem>
+                          <SelectItem value="unissex">Unissex</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}
                 name="imagem"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>URL da Imagem</FormLabel>
+                    <FormLabel>Imagem do Produto</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="https://exemplo.com/imagem.jpg" 
-                        {...field} 
+                      <ProductImageUpload 
+                        imageUrl={field.value} 
+                        onImageChange={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />
-                    {field.value && (
-                      <div className="mt-2">
-                        <p className="text-sm text-gray-500 mb-1">Preview:</p>
-                        <img 
-                          src={field.value} 
-                          alt="Preview" 
-                          className="w-32 h-32 object-cover rounded-md border"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150';
-                          }} 
-                        />
-                      </div>
-                    )}
                   </FormItem>
                 )}
               />

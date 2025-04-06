@@ -1,4 +1,3 @@
-
 export interface Produto {
   id: string;
   nome: string;
@@ -12,6 +11,7 @@ export interface Produto {
   link?: string;
   data_publicacao?: string;
   status?: 'ativo' | 'inativo';
+  genero?: 'masculino' | 'feminino' | 'unissex';
 }
 
 export interface Categoria {
