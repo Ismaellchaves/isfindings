@@ -21,8 +21,9 @@ const ProductCategorySelect: React.FC<ProductCategorySelectProps> = ({ value, on
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   
-  // Get unique category names from the data
-  const uniqueCategories = [...new Set(categorias.map(cat => cat.nome))];
+  // Get unique category names from the data, ensuring no empty values
+  const uniqueCategories = [...new Set(categorias.map(cat => cat.nome))]
+    .filter(category => category && category.trim() !== '');
   
   const handleAddCategory = () => {
     if (newCategory.trim()) {
@@ -36,14 +37,18 @@ const ProductCategorySelect: React.FC<ProductCategorySelectProps> = ({ value, on
     <div className="space-y-2">
       {!isAddingCategory ? (
         <div className="flex items-center gap-2">
-          <Select value={value} onValueChange={onChange}>
+          <Select value={value || "selecione"} onValueChange={onChange}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecione uma categoria" />
             </SelectTrigger>
             <SelectContent>
-              {uniqueCategories.map((cat) => (
-                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-              ))}
+              {uniqueCategories.length > 0 ? (
+                uniqueCategories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))
+              ) : (
+                <SelectItem value="nenhuma-categoria">Nenhuma categoria disponível</SelectItem>
+              )}
             </SelectContent>
           </Select>
           <Button 

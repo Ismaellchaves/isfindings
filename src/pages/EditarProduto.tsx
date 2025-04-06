@@ -15,7 +15,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Produto } from '@/lib/tipos';
 import ProductCategorySelect from '@/components/ProductCategorySelect';
 import ProductImageUpload from '@/components/ProductImageUpload';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 
 // Esquema de validação do formulário usando Zod
 const produtoSchema = z.object({
