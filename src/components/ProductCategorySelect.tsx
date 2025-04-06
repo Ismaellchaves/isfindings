@@ -44,7 +44,7 @@ const ProductCategorySelect: React.FC<ProductCategorySelectProps> = ({ value, on
             <SelectContent>
               {uniqueCategories.length > 0 ? (
                 uniqueCategories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  <SelectItem key={cat} value={cat || "categoria_default"}>{cat}</SelectItem>
                 ))
               ) : (
                 <SelectItem value="nenhuma-categoria">Nenhuma categoria disponível</SelectItem>

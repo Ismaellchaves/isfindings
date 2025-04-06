@@ -1,334 +1,334 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, ChevronLeft, Edit, Trash2, Search, Filter } from 'lucide-react';
+import { 
+  Plus, 
+  Pencil, 
+  Trash2, 
+  ChevronLeft, 
+  ChevronRight, 
+  Search,
+  Filter
+} from 'lucide-react';
 import StatusBar from '@/components/StatusBar';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { toast } from "@/hooks/use-toast";
 import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from "@/components/ui/alert-dialog";
+  Card, 
+  CardContent, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Produto } from '@/lib/tipos';
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from "@/hooks/use-toast";
-import { Produto } from '@/lib/tipos';
-import { produtos as dadosProdutos } from '@/lib/dados';
+  SelectValue
+} from '@/components/ui/select';
+import { categorias } from '@/lib/dados';
 
 const AdminProdutos: React.FC = () => {
   const navigate = useNavigate();
-  const [todosProdutos, setTodosProdutos] = useState<Produto[]>([]);
-  const [produtosAtivos, setProdutosAtivos] = useState<Produto[]>([]);
-  const [produtosInativos, setProdutosInativos] = useState<Produto[]>([]);
-  const [deleteProdutoId, setDeleteProdutoId] = useState<string | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [produtoToDelete, setProdutoToDelete] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoriaFilter, setCategoriaFilter] = useState<string>('');
-  const [generoFilter, setGeneroFilter] = useState<string>('');
+  const [filteredProdutos, setFilteredProdutos] = useState<Produto[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filterCategory, setFilterCategory] = useState<string>('todas');
+  const [filterGender, setFilterGender] = useState<string>('todos');
+  const itemsPerPage = 10;
 
-  // Lista de categorias únicas
-  const uniqueCategorias = Array.from(new Set(todosProdutos.map(p => p.categoria)));
-  
+  // Get unique category names, ensuring no empty values
+  const uniqueCategories = [...new Set(produtos.map(produto => produto.categoria))]
+    .filter(category => category && category.trim() !== '');
+
+  // Get unique genders
+  const uniqueGenders = [...new Set(produtos.map(produto => produto.genero || 'unissex'))]
+    .filter(gender => gender && gender.trim() !== '');
+
   useEffect(() => {
-    loadProducts();
+    loadProdutos();
   }, []);
 
-  const loadProducts = () => {
-    // Carrega os produtos do localStorage, ou usa os padrões se não houver dados
-    const storedProdutos = localStorage.getItem('produtos');
-    const produtosData = storedProdutos ? JSON.parse(storedProdutos) : dadosProdutos;
+  useEffect(() => {
+    let results = produtos;
     
-    setTodosProdutos(produtosData);
-    
-    // Filtra produtos ativos (status === 'ativo' ou undefined/null)
-    const ativos = produtosData.filter((p: Produto) => p.status !== 'inativo');
-    setProdutosAtivos(ativos);
-    
-    // Filtra produtos inativos
-    const inativos = produtosData.filter((p: Produto) => p.status === 'inativo');
-    setProdutosInativos(inativos);
-  };
-
-  const updateLocalStorage = (produtos: Produto[]) => {
-    localStorage.setItem('produtos', JSON.stringify(produtos));
-  };
-
-  const handleEdit = (produtoId: string) => {
-    navigate(`/admin/produtos/editar/${produtoId}`);
-  };
-
-  const openDeleteDialog = (produtoId: string) => {
-    setDeleteProdutoId(produtoId);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDelete = () => {
-    if (!deleteProdutoId) return;
-    
-    // Atualiza as listas removendo o produto excluído
-    const produtosAtualizados = todosProdutos.filter(p => p.id !== deleteProdutoId);
-    setTodosProdutos(produtosAtualizados);
-    
-    const ativosAtualizados = produtosAtivos.filter(p => p.id !== deleteProdutoId);
-    setProdutosAtivos(ativosAtualizados);
-    
-    const inativosAtualizados = produtosInativos.filter(p => p.id !== deleteProdutoId);
-    setProdutosInativos(inativosAtualizados);
-    
-    // Atualiza o localStorage
-    updateLocalStorage(produtosAtualizados);
-    
-    // Feedback para o usuário
-    toast({
-      title: "Produto excluído",
-      description: "O produto foi excluído com sucesso.",
-    });
-    
-    // Fecha o diálogo
-    setDeleteDialogOpen(false);
-    setDeleteProdutoId(null);
-  };
-
-  const filterProducts = (produtos: Produto[]) => {
-    return produtos.filter(produto => {
-      const matchesSearch = searchTerm === '' || 
+    // Apply search filter
+    if (searchTerm) {
+      results = results.filter(produto => 
         produto.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        produto.categoria.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCategoria = categoriaFilter === '' || produto.categoria === categoriaFilter;
-      
-      const matchesGenero = generoFilter === '' || produto.genero === generoFilter;
-      
-      return matchesSearch && matchesCategoria && matchesGenero;
-    });
-  };
-
-  // Componente de card de produto reutilizável
-  const ProdutoCard = ({ produto }: { produto: Produto }) => (
-    <Card key={produto.id} className="overflow-hidden">
-      <div className="h-32 bg-gray-100 overflow-hidden">
-        <img 
-          src={produto.imagem} 
-          alt={produto.nome} 
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150';
-          }}
-        />
-      </div>
-      <CardContent className="p-3">
-        <h3 className="font-medium truncate">{produto.nome}</h3>
-        <div className="flex items-center mt-1 mb-1">
-          <span className="font-bold text-orange-500">R$ {produto.preco.toFixed(2).replace('.', ',')}</span>
-          {produto.precoAntigo && (
-            <span className="text-gray-400 text-sm line-through ml-2">
-              R$ {produto.precoAntigo.toFixed(2).replace('.', ',')}
-            </span>
-          )}
-        </div>
-        <div className="text-xs text-gray-500 mb-2">
-          <span className="bg-gray-100 rounded-full px-2 py-0.5 mr-1">{produto.categoria}</span>
-          {produto.genero && (
-            <span className="bg-gray-100 rounded-full px-2 py-0.5">{produto.genero}</span>
-          )}
-        </div>
-        <div className="flex justify-between mt-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleEdit(produto.id)}
-            className="flex items-center"
-          >
-            <Edit className="h-4 w-4 mr-1" />
-            Editar
-          </Button>
-          <Button 
-            variant="destructive" 
-            size="sm" 
-            onClick={() => openDeleteDialog(produto.id)}
-            className="flex items-center"
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            Excluir
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  // Template para exibir uma grade de produtos ou mensagem quando vazio
-  const ProdutosGrid = ({ produtos, mensagemVazio }: { produtos: Produto[], mensagemVazio: string }) => {
-    const filteredProdutos = filterProducts(produtos);
+        produto.categoria.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        produto.descricao.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
     
-    return (
-      <>
-        {filteredProdutos.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 mb-20">
-            {filteredProdutos.map(produto => (
-              <ProdutoCard key={produto.id} produto={produto} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <p className="text-gray-500 mb-4">{mensagemVazio}</p>
-            <Button 
-              onClick={() => navigate('/admin/produtos/cadastrar')}
-              className="flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Cadastrar Produto
-            </Button>
-          </div>
-        )}
-      </>
-    );
+    // Apply category filter
+    if (filterCategory && filterCategory !== 'todas') {
+      results = results.filter(produto => 
+        produto.categoria === filterCategory
+      );
+    }
+    
+    // Apply gender filter
+    if (filterGender && filterGender !== 'todos') {
+      results = results.filter(produto => 
+        produto.genero === filterGender
+      );
+    }
+    
+    setFilteredProdutos(results);
+    setCurrentPage(1); // Reset to first page on filter change
+  }, [searchTerm, filterCategory, filterGender, produtos]);
+
+  const loadProdutos = () => {
+    try {
+      setLoading(true);
+      const storedProdutos = localStorage.getItem('produtos');
+      if (storedProdutos) {
+        const parsedProdutos = JSON.parse(storedProdutos);
+        setProdutos(parsedProdutos);
+        setFilteredProdutos(parsedProdutos);
+      } else {
+        setProdutos([]);
+        setFilteredProdutos([]);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar produtos:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os produtos.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleDeleteProduto = (id: string) => {
+    setProdutoToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteProduto = () => {
+    if (!produtoToDelete) return;
+
+    try {
+      const updatedProdutos = produtos.filter(p => p.id !== produtoToDelete);
+      localStorage.setItem('produtos', JSON.stringify(updatedProdutos));
+      setProdutos(updatedProdutos);
+      
+      toast({
+        title: "Produto excluído",
+        description: "O produto foi excluído com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao excluir produto:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao excluir o produto.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteConfirmOpen(false);
+      setProdutoToDelete(null);
+    }
+  };
+
+  // Calculate pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredProdutos.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredProdutos.length / itemsPerPage);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   return (
     <>
       <StatusBar />
-      <div className="page-container">
-        <div className="flex items-center justify-between py-4 mb-6">
-          <button 
-            onClick={() => navigate('/perfil')} 
-            className="flex items-center text-gray-600"
-          >
-            <ChevronLeft className="w-5 h-5 mr-1" />
-            <span>Voltar</span>
-          </button>
-          <h1 className="title-text">Gerenciar Produtos</h1>
-          <div className="w-20"></div> {/* Spacer for alignment */}
+      <div className="page-container pb-20">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Gerenciar Produtos</h1>
+          <Button onClick={() => navigate('/admin/produtos/cadastrar')}>
+            <Plus className="mr-2 h-4 w-4" /> Novo Produto
+          </Button>
         </div>
-        
-        {/* Filtros */}
-        <div className="mb-4 space-y-3">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input 
-                placeholder="Buscar produtos..." 
-                className="pl-10" 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={() => {
-                setSearchTerm('');
-                setCategoriaFilter('');
-                setGeneroFilter('');
-              }}
-            >
-              <Filter className="h-4 w-4" />
-              Limpar
-            </Button>
-          </div>
-          
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <Select value={categoriaFilter} onValueChange={setCategoriaFilter}>
+
+        {/* Search and Filter */}
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                <Input
+                  placeholder="Pesquisar produtos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              <Select 
+                value={filterCategory} 
+                onValueChange={setFilterCategory}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Filtrar por categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as categorias</SelectItem>
-                  <SelectGroup>
-                    {uniqueCategorias.map(cat => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                  </SelectGroup>
+                  <SelectItem value="todas">Todas as categorias</SelectItem>
+                  {uniqueCategories.map((category) => (
+                    <SelectItem key={category} value={category || "categoria_default"}>
+                      {category}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-            </div>
-            
-            <div className="flex-1">
-              <Select value={generoFilter} onValueChange={setGeneroFilter}>
+              
+              <Select 
+                value={filterGender} 
+                onValueChange={setFilterGender}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Filtrar por gênero" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os gêneros</SelectItem>
-                  <SelectItem value="masculino">Masculino</SelectItem>
-                  <SelectItem value="feminino">Feminino</SelectItem>
-                  <SelectItem value="unissex">Unissex</SelectItem>
+                  <SelectItem value="todos">Todos os gêneros</SelectItem>
+                  {uniqueGenders.map((gender) => (
+                    <SelectItem key={gender} value={gender || "genero_default"}>
+                      {gender === 'masculino' ? 'Masculino' : 
+                       gender === 'feminino' ? 'Feminino' : 'Unissex'}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+          </CardContent>
+        </Card>
+
+        {loading ? (
+          <div className="flex justify-center items-center py-10">
+            <p>Carregando produtos...</p>
           </div>
-        </div>
-        
-        <Tabs defaultValue="todos" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="todos">Todos</TabsTrigger>
-            <TabsTrigger value="ativos">Ativos</TabsTrigger>
-            <TabsTrigger value="inativos">Inativos</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="todos" className="pt-2">
-            <ProdutosGrid 
-              produtos={todosProdutos} 
-              mensagemVazio="Nenhum produto cadastrado" 
-            />
-          </TabsContent>
-          
-          <TabsContent value="ativos">
-            <ProdutosGrid 
-              produtos={produtosAtivos} 
-              mensagemVazio="Nenhum produto ativo" 
-            />
-          </TabsContent>
-          
-          <TabsContent value="inativos">
-            <ProdutosGrid 
-              produtos={produtosInativos} 
-              mensagemVazio="Nenhum produto inativo" 
-            />
-          </TabsContent>
-        </Tabs>
+        ) : currentItems.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {currentItems.map((produto) => (
+                <Card key={produto.id} className="overflow-hidden">
+                  <div className="h-48 overflow-hidden">
+                    <img 
+                      src={produto.imagem || 'https://via.placeholder.com/150'} 
+                      alt={produto.nome}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150';
+                      }}
+                    />
+                  </div>
+                  <CardHeader className="p-4 pb-0">
+                    <CardTitle className="text-lg font-medium">{produto.nome}</CardTitle>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      <div>Categoria: {produto.categoria}</div>
+                      <div>Preço: R$ {produto.preco.toFixed(2)}</div>
+                      <div>Gênero: {produto.genero || 'Unissex'}</div>
+                    </div>
+                  </CardHeader>
+                  <CardFooter className="p-4 pt-0 flex justify-end gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate(`/admin/produtos/editar/${produto.id}`)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => handleDeleteProduto(produto.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
 
-        <div className="fixed bottom-6 right-6">
-          <Button 
-            onClick={() => navigate('/admin/produtos/cadastrar')} 
-            className="h-14 w-14 rounded-full"
-          >
-            <Plus className="h-6 w-6" />
-          </Button>
-        </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-6">
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => paginate(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm">
+                    Página {currentPage} de {totalPages}
+                  </span>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-10">
+            <p className="text-lg mb-4">Nenhum produto encontrado.</p>
+            <Button onClick={() => navigate('/admin/produtos/cadastrar')}>
+              <Plus className="mr-2 h-4 w-4" /> Adicionar Produto
+            </Button>
+          </div>
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Excluir Produto</DialogTitle>
+              <DialogDescription>
+                Você tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setDeleteConfirmOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={confirmDeleteProduto}
+              >
+                Excluir
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir produto</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 };
