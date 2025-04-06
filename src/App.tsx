@@ -1,7 +1,6 @@
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
@@ -57,43 +56,40 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Fornece suporte para tooltips */}
-      <TooltipProvider>
-        {/* Componentes de notificação */}
-        <Toaster />
-        <Sonner />
+      {/* Componentes de notificação */}
+      <Toaster />
+      <Sonner />
 
-        {/* Configuração do React Router */}
-        <BrowserRouter>
-          <Routes>
-            {/* Redirecionamento padrão para a rota inicial */}
-            <Route path="/" element={<Navigate to={initialRoute} replace />} />
+      {/* Configuração do React Router */}
+      <BrowserRouter>
+        <Routes>
+          {/* Redirecionamento padrão para a rota inicial */}
+          <Route path="/" element={<Navigate to={initialRoute} replace />} />
 
-            {/* Rotas principais */}
-            <Route path="/welcome" element={<Welcome />} />
-            <Route path="/home" element={<Index />} />
-            <Route path="/favoritos" element={<Favoritos />} />
-            <Route path="/detalhes/:id" element={<Detalhes />} />
-            <Route path="/perfil" element={<Perfil />} />
-            <Route path="/categorias" element={<Categorias />} />
-            <Route path="/categorias/:id" element={<CategoriaDetalhe />} />
-            <Route path="/carrinho" element={<Carrinho />} />
-            <Route path="/metodopagamento" element={<MetodoPagamento />} />
-            <Route path="/filtro" element={<Filtro />} />
-            <Route path="/enderecos" element={<Enderecos />} />
-            <Route path="/carteira" element={<Carteira />} />
-            <Route path="/termos" element={<Termos />} />
-            <Route path="/suporte" element={<Suporte />} />
-            
-            {/* Rotas de Admin */}
-            <Route path="/admin/produtos" element={<AdminProdutos />} />
-            <Route path="/admin/produtos/cadastrar" element={<CadastrarProduto />} />
+          {/* Rotas principais */}
+          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/home" element={<Index />} />
+          <Route path="/favoritos" element={<Favoritos />} />
+          <Route path="/detalhes/:id" element={<Detalhes />} />
+          <Route path="/perfil" element={<Perfil />} />
+          <Route path="/categorias" element={<Categorias />} />
+          <Route path="/categorias/:id" element={<CategoriaDetalhe />} />
+          <Route path="/carrinho" element={<Carrinho />} />
+          <Route path="/metodopagamento" element={<MetodoPagamento />} />
+          <Route path="/filtro" element={<Filtro />} />
+          <Route path="/enderecos" element={<Enderecos />} />
+          <Route path="/carteira" element={<Carteira />} />
+          <Route path="/termos" element={<Termos />} />
+          <Route path="/suporte" element={<Suporte />} />
+          
+          {/* Rotas de Admin */}
+          <Route path="/admin/produtos" element={<AdminProdutos />} />
+          <Route path="/admin/produtos/cadastrar" element={<CadastrarProduto />} />
 
-            {/* Rota fallback para páginas não encontradas */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+          {/* Rota fallback para páginas não encontradas */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 };
