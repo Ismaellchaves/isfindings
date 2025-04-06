@@ -9,6 +9,9 @@ export interface Produto {
   descricao: string;
   cores?: string[];
   tamanhos?: string[];
+  link?: string;
+  data_publicacao?: string;
+  status?: 'ativo' | 'inativo';
 }
 
 export interface Categoria {

@@ -1,11 +1,45 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { MapPin, CreditCard, File, Phone, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { MapPin, CreditCard, File, Phone, ChevronRight, Lock } from 'lucide-react';
 import StatusBar from '@/components/StatusBar';
 import Navbar from '@/components/Navbar';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter,
+  DialogHeader
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 const Perfil: React.FC = () => {
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [email, setEmail] = useState('isfindings@gmail.com');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (email === 'isfindings@gmail.com' && password === 'IS123') {
+      setIsLoginOpen(false);
+      toast({
+        title: "Acesso autorizado",
+        description: "Bem-vindo à área restrita.",
+      });
+      navigate('/admin/produtos');
+    } else {
+      setError('Acesso negado. Verifique suas credenciais.');
+    }
+  };
+
   return (
     <>
       <StatusBar />
@@ -16,7 +50,7 @@ const Perfil: React.FC = () => {
           <div className="relative mb-4">
             <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-md bg-orange-100 flex items-center justify-center">
               <img
-                src="/public/isfindings.jpg"
+                src="/isfindings.jpg"
                 alt="Imagem de perfil"
                 className="w-full h-full object-cover"
               />
@@ -36,6 +70,15 @@ const Perfil: React.FC = () => {
 
           <h2 className="text-xl font-semibold">ISFINDINGS</h2>
           <p className="text-gray-500 text-sm">isfindings@gmail.com</p>
+          
+          <Button 
+            variant="outline" 
+            className="mt-4 flex items-center gap-2 bg-orange-100 hover:bg-orange-200 border-orange-300"
+            onClick={() => setIsLoginOpen(true)}
+          >
+            <Lock className="w-4 h-4 text-orange-600" />
+            <span>Área Restrita (DM)</span>
+          </Button>
         </div>
 
         <div className="space-y-4">
@@ -80,6 +123,52 @@ const Perfil: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {/* Login Dialog */}
+      <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Acesso Restrito</DialogTitle>
+            <DialogDescription>
+              Digite suas credenciais para acessar a área de administração.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleLoginSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email" 
+                type="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input 
+                id="password" 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+
+            {error && (
+              <p className="text-sm font-medium text-red-500">{error}</p>
+            )}
+
+            <DialogFooter>
+              <Button variant="outline" type="button" onClick={() => setIsLoginOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">Acessar</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
       <Navbar />
     </>
   );

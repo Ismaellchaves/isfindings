@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +19,8 @@ import Carteira from "./pages/Carteira";
 import Termos from "./pages/Termos";
 import Suporte from "./pages/Suporte";
 import CategoriaDetalhe from "./pages/CategoriaDetalhe";
+import AdminProdutos from "./pages/AdminProdutos";
+import CadastrarProduto from "./pages/CadastrarProduto";
 
 // Cria uma instância do QueryClient para gerenciamento de estado global
 const queryClient = new QueryClient();
@@ -81,6 +84,10 @@ const App = () => {
             <Route path="/carteira" element={<Carteira />} />
             <Route path="/termos" element={<Termos />} />
             <Route path="/suporte" element={<Suporte />} />
+            
+            {/* Rotas de Admin */}
+            <Route path="/admin/produtos" element={<AdminProdutos />} />
+            <Route path="/admin/produtos/cadastrar" element={<CadastrarProduto />} />
 
             {/* Rota fallback para páginas não encontradas */}
             <Route path="*" element={<NotFound />} />
