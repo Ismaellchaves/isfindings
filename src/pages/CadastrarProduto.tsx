@@ -5,7 +5,6 @@ import { ChevronLeft, Save } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { v4 as uuidv4 } from 'uuid';
 import { toast } from "@/hooks/use-toast";
 import StatusBar from '@/components/StatusBar';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Produto } from '@/lib/tipos';
+import { generateId } from '@/utils/id';
 
 // Esquema de validação do formulário usando Zod
 const produtoSchema = z.object({
@@ -56,7 +56,7 @@ const CadastrarProduto: React.FC = () => {
     try {
       // Formatar dados do produto
       const novoProduto: Produto = {
-        id: uuidv4(), // Gera um ID único
+        id: generateId(), // Usando nosso próprio gerador de ID
         nome: values.nome,
         preco: parseFloat(values.preco),
         precoAntigo: values.precoAntigo ? parseFloat(values.precoAntigo) : undefined,
