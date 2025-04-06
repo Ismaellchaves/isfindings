@@ -21,6 +21,8 @@ import CategoriaDetalhe from "./pages/CategoriaDetalhe";
 import AdminProdutos from "./pages/AdminProdutos";
 import CadastrarProduto from "./pages/CadastrarProduto";
 import EditarProduto from "./pages/EditarProduto";
+import AdminCategorias from "./pages/AdminCategorias";
+import AdminCategoriaProdutos from "./pages/AdminCategoriaProdutos";
 
 // Cria uma instância do QueryClient para gerenciamento de estado global
 const queryClient = new QueryClient();
@@ -87,6 +89,8 @@ const App = () => {
           <Route path="/admin/produtos" element={<AdminProdutos />} />
           <Route path="/admin/produtos/cadastrar" element={<CadastrarProduto />} />
           <Route path="/admin/produtos/editar/:id" element={<EditarProduto />} />
+          <Route path="/admin/categorias" element={<AdminCategorias />} />
+          <Route path="/admin/categorias/:categoria" element={<AdminCategoriaProdutos />} />
 
           {/* Rota fallback para páginas não encontradas */}
           <Route path="*" element={<NotFound />} />
