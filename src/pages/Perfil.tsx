@@ -1,7 +1,6 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MapPin, CreditCard, File, Phone, ChevronRight, Lock, Layers } from 'lucide-react';
+import { MapPin, CreditCard, File, Phone, ChevronRight, Lock } from 'lucide-react';
 import StatusBar from '@/components/StatusBar';
 import Navbar from '@/components/Navbar';
 import { 
@@ -26,16 +25,23 @@ const Perfil: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  useEffect(() => {
+    const adminStatus = localStorage.getItem('isAdmin');
+    setIsAdmin(adminStatus === 'true');
+  }, []);
+
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (email === 'isfindings@gmail.com' && password === 'IS123') {
       setIsLoginOpen(false);
       setIsAdmin(true);
+      localStorage.setItem('isAdmin', 'true');
       toast({
         title: "Acesso autorizado",
         description: "Bem-vindo à área restrita.",
       });
+      navigate('/admin');
     } else {
       setError('Acesso negado. Verifique suas credenciais.');
     }
@@ -82,31 +88,13 @@ const Perfil: React.FC = () => {
               <span>Área Restrita (DM)</span>
             </Button>
           ) : (
-            <div className="mt-4 space-y-3 w-full">
-              <Button 
-                variant="default" 
-                className="w-full flex items-center justify-between"
-                onClick={() => navigate('/admin/categorias')}
-              >
-                <span className="flex items-center gap-2">
-                  <Layers className="w-4 h-4" />
-                  <span>Gerenciar Categorias</span>
-                </span>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-              
-              <Button 
-                variant="default" 
-                className="w-full flex items-center justify-between"
-                onClick={() => navigate('/admin/produtos')}
-              >
-                <span className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4" />
-                  <span>Gerenciar Produtos</span>
-                </span>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
+            <Button 
+              variant="default" 
+              className="mt-4 w-full"
+              onClick={() => navigate('/admin')}
+            >
+              Acessar Painel Administrativo
+            </Button>
           )}
         </div>
 
@@ -153,7 +141,6 @@ const Perfil: React.FC = () => {
         </div>
       </div>
 
-      {/* Login Dialog */}
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
         <DialogContent>
           <DialogHeader>
