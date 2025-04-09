@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Produto } from '@/lib/tipos';
 import { categorias } from '@/lib/dados';
+import { garantirDadosExemplo, obterTodosProdutos } from '@/utils/exampleData';
 
 const AdminCategorias: React.FC = () => {
   const navigate = useNavigate();
@@ -28,27 +29,28 @@ const AdminCategorias: React.FC = () => {
   const loadProdutos = () => {
     try {
       setLoading(true);
-      const storedProdutos = localStorage.getItem('produtos');
-      if (storedProdutos) {
-        const parsedProdutos: Produto[] = JSON.parse(storedProdutos);
-        setProdutos(parsedProdutos);
+      // Garantir que existam dados de exemplo
+      garantirDadosExemplo();
+      
+      // Obter todos os produtos
+      const todosProdutos = obterTodosProdutos();
+      setProdutos(todosProdutos);
         
-        // Agrupar produtos por categoria
-        const produtosPorCat: Record<string, Produto[]> = {};
-        const categoriasSet = new Set<string>();
+      // Agrupar produtos por categoria
+      const produtosPorCat: Record<string, Produto[]> = {};
+      const categoriasSet = new Set<string>();
         
-        parsedProdutos.forEach(produto => {
-          const categoria = produto.categoria || 'Sem categoria';
-          if (!produtosPorCat[categoria]) {
-            produtosPorCat[categoria] = [];
-          }
-          produtosPorCat[categoria].push(produto);
-          categoriasSet.add(categoria);
-        });
+      todosProdutos.forEach(produto => {
+        const categoria = produto.categoria || 'Sem categoria';
+        if (!produtosPorCat[categoria]) {
+          produtosPorCat[categoria] = [];
+        }
+        produtosPorCat[categoria].push(produto);
+        categoriasSet.add(categoria);
+      });
         
-        setProdutosPorCategoria(produtosPorCat);
-        setCategoriasUnicas(Array.from(categoriasSet));
-      }
+      setProdutosPorCategoria(produtosPorCat);
+      setCategoriasUnicas(Array.from(categoriasSet));
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
       toast({

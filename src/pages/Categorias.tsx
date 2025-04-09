@@ -1,12 +1,22 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import StatusBar from '@/components/StatusBar';
 import HeaderBack from '@/components/HeaderBack';
-import { categorias, produtos } from '@/lib/dados'; // Importe os produtos
+import { categorias } from '@/lib/dados';
 import { Button } from '@/components/ui/button';
+import { Produto } from '@/lib/tipos';
+import { obterTodosProdutos } from '@/utils/exampleData';
 
 const Categorias: React.FC = () => {
   const [generoAtivo, setGeneroAtivo] = useState<'feminino' | 'masculino'>('feminino');
+  const [todosProdutos, setTodosProdutos] = useState<Produto[]>([]);
+
+  useEffect(() => {
+    // Carrega todos os produtos ao montar o componente
+    const produtos = obterTodosProdutos();
+    setTodosProdutos(produtos);
+  }, []);
 
   // Filtra as categorias com base no gênero selecionado
   const categoriasFemininas = categorias.filter(cat => cat.genero === 'feminino');
@@ -14,7 +24,7 @@ const Categorias: React.FC = () => {
   const categoriasAtivas = generoAtivo === 'feminino' ? categoriasFemininas : categoriasMasculinas;
 
   // Filtra os produtos com base no gênero selecionado
-  const produtosFiltrados = produtos.filter(produto =>
+  const produtosFiltrados = todosProdutos.filter(produto =>
     generoAtivo === 'feminino' ? produto.id.endsWith('-f') : produto.id.endsWith('-m')
   );
 

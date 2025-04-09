@@ -1,6 +1,7 @@
 
 import { Produto } from '@/lib/tipos';
 import { generateId } from '@/utils/id';
+import { produtos as produtosDados } from '@/lib/dados';
 
 // Produtos de exemplo para garantir que sempre existam dados para visualização
 export const produtosExemplo: Produto[] = [
@@ -72,15 +73,38 @@ export const produtosExemplo: Produto[] = [
   }
 ];
 
+// Função para combinar produtos do localStorage e produtos iniciais
+export function obterTodosProdutos(): Produto[] {
+  try {
+    const storedProdutos = localStorage.getItem('produtos');
+    let produtos: Produto[] = [];
+    
+    if (storedProdutos) {
+      produtos = JSON.parse(storedProdutos);
+    } else {
+      // Se não existirem produtos armazenados, combinar os dados
+      produtos = [...produtosExemplo, ...produtosDados];
+      localStorage.setItem('produtos', JSON.stringify(produtos));
+      console.log('Produtos combinados carregados com sucesso!');
+    }
+    
+    return produtos;
+  } catch (error) {
+    console.error('Erro ao obter produtos:', error);
+    return [];
+  }
+}
+
 // Função para garantir que existam dados de exemplo no localStorage
 export function garantirDadosExemplo() {
   try {
     const storedProdutos = localStorage.getItem('produtos');
     
-    // Se não existirem produtos armazenados, carrega os exemplos
+    // Se não existirem produtos armazenados, carrega os exemplos e dados iniciais
     if (!storedProdutos) {
-      localStorage.setItem('produtos', JSON.stringify(produtosExemplo));
-      console.log('Produtos de exemplo carregados com sucesso!');
+      const todosProdutos = [...produtosExemplo, ...produtosDados];
+      localStorage.setItem('produtos', JSON.stringify(todosProdutos));
+      console.log('Produtos de exemplo e dados iniciais carregados com sucesso!');
     }
   } catch (error) {
     console.error('Erro ao carregar dados de exemplo:', error);

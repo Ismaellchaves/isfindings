@@ -38,7 +38,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { categorias } from '@/lib/dados';
-import { garantirDadosExemplo } from '@/utils/exampleData';
+import { garantirDadosExemplo, obterTodosProdutos } from '@/utils/exampleData';
 
 const AdminProdutos: React.FC = () => {
   const navigate = useNavigate();
@@ -101,25 +101,10 @@ const AdminProdutos: React.FC = () => {
   const loadProdutos = () => {
     try {
       setLoading(true);
-      const storedProdutos = localStorage.getItem('produtos');
-      if (storedProdutos) {
-        const parsedProdutos = JSON.parse(storedProdutos);
-        setProdutos(parsedProdutos);
-        setFilteredProdutos(parsedProdutos);
-      } else {
-        // Se não houver produtos, carregue os dados de exemplo
-        garantirDadosExemplo();
-        // Tente novamente carregar os produtos
-        const reloadProdutos = localStorage.getItem('produtos');
-        if (reloadProdutos) {
-          const parsedProdutos = JSON.parse(reloadProdutos);
-          setProdutos(parsedProdutos);
-          setFilteredProdutos(parsedProdutos);
-        } else {
-          setProdutos([]);
-          setFilteredProdutos([]);
-        }
-      }
+      // Obter todos os produtos (localStorage + dados.ts)
+      const todosProdutos = obterTodosProdutos();
+      setProdutos(todosProdutos);
+      setFilteredProdutos(todosProdutos);
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
       toast({

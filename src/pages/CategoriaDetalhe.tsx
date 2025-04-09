@@ -1,10 +1,12 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import StatusBar from '@/components/StatusBar';
 import HeaderBack from '@/components/HeaderBack';
 import ProductCard from '@/components/ProductCard';
-import { categorias, produtos } from '@/lib/dados';
+import { categorias } from '@/lib/dados';
 import { Produto } from '@/lib/tipos';
+import { obterTodosProdutos } from '@/utils/exampleData';
 
 const CategoriaDetalhe: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,11 +20,14 @@ const CategoriaDetalhe: React.FC = () => {
     if (categoriaEncontrada) {
       setCategoria(categoriaEncontrada.nome);
 
+      // Obter todos os produtos
+      const todosProdutos = obterTodosProdutos();
+
       // Extrai o gênero da categoria (último caractere do ID)
       const generoCategoria = categoriaEncontrada.id.split('-').pop(); // Retorna 'f' ou 'm'
 
       // Filtra produtos pela categoria e pelo gênero
-      const produtosDaCategoria = produtos.filter(produto => {
+      const produtosDaCategoria = todosProdutos.filter(produto => {
         const generoProduto = produto.id.split('-').pop(); // Retorna 'f' ou 'm'
         return (
           produto.categoria.toLowerCase() === categoriaEncontrada.id.split('-')[0].toLowerCase() &&

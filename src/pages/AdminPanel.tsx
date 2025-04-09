@@ -6,6 +6,8 @@ import StatusBar from '@/components/StatusBar';
 import { Button } from '@/components/ui/button';
 import { toast } from "@/hooks/use-toast";
 import { Produto } from '@/lib/tipos';
+import { produtos as produtosIniciais } from '@/lib/dados';
+import { garantirDadosExemplo } from '@/utils/exampleData';
 
 const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
@@ -23,16 +25,25 @@ const AdminPanel: React.FC = () => {
   // Carregar contagem de produtos e categorias
   useEffect(() => {
     try {
+      // Garantir que existam dados de exemplo
+      garantirDadosExemplo();
+
       // Carregar produtos do localStorage
       const storedProdutos = localStorage.getItem('produtos');
+      let produtos: Produto[] = [];
+      
       if (storedProdutos) {
-        const produtos: Produto[] = JSON.parse(storedProdutos);
-        setProdutosCount(produtos.length);
-        
-        // Extrair categorias únicas
-        const categorias = [...new Set(produtos.map(produto => produto.categoria))];
-        setCategoriasCount(categorias.length);
+        produtos = JSON.parse(storedProdutos);
+      } else {
+        // Se não houver produtos em localStorage, usar dados iniciais
+        produtos = produtosIniciais;
       }
+      
+      setProdutosCount(produtos.length);
+      
+      // Extrair categorias únicas
+      const categorias = [...new Set(produtos.map(produto => produto.categoria))];
+      setCategoriasCount(categorias.length);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
       toast({

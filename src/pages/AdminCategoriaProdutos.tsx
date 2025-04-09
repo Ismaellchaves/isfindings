@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
@@ -19,7 +18,7 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { Produto } from '@/lib/tipos';
-import { garantirDadosExemplo } from '@/utils/exampleData';
+import { garantirDadosExemplo, obterTodosProdutos } from '@/utils/exampleData';
 
 const AdminCategoriaProdutos: React.FC = () => {
   const navigate = useNavigate();
@@ -39,35 +38,16 @@ const AdminCategoriaProdutos: React.FC = () => {
   const loadProdutos = () => {
     try {
       setLoading(true);
-      const storedProdutos = localStorage.getItem('produtos');
-      if (storedProdutos) {
-        const parsedProdutos: Produto[] = JSON.parse(storedProdutos);
-        setProdutos(parsedProdutos);
+      // Obter todos os produtos (localStorage + dados.ts)
+      const todosProdutos = obterTodosProdutos();
+      setProdutos(todosProdutos);
         
-        // Filtrar produtos pela categoria
-        if (categoria) {
-          const filtrados = parsedProdutos.filter(
-            p => p.categoria === decodeURIComponent(categoria)
-          );
-          setProdutosFiltrados(filtrados);
-        }
-      } else {
-        // Se não houver produtos, carregue os dados de exemplo
-        garantirDadosExemplo();
-        // Tente novamente carregar os produtos
-        const reloadProdutos = localStorage.getItem('produtos');
-        if (reloadProdutos) {
-          const parsedProdutos: Produto[] = JSON.parse(reloadProdutos);
-          setProdutos(parsedProdutos);
-          
-          // Filtrar produtos pela categoria
-          if (categoria) {
-            const filtrados = parsedProdutos.filter(
-              p => p.categoria === decodeURIComponent(categoria)
-            );
-            setProdutosFiltrados(filtrados);
-          }
-        }
+      // Filtrar produtos pela categoria
+      if (categoria) {
+        const filtrados = todosProdutos.filter(
+          p => p.categoria === decodeURIComponent(categoria)
+        );
+        setProdutosFiltrados(filtrados);
       }
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
