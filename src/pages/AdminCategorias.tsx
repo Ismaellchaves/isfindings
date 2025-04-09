@@ -29,7 +29,7 @@ const AdminCategorias: React.FC = () => {
   const loadProdutos = () => {
     try {
       setLoading(true);
-      // Garantir que existam dados de exemplo
+      // Garantir que existam dados de exemplo e que todos os produtos de dados.ts estejam presentes
       garantirDadosExemplo();
       
       // Obter todos os produtos
@@ -50,7 +50,8 @@ const AdminCategorias: React.FC = () => {
       });
         
       setProdutosPorCategoria(produtosPorCat);
-      setCategoriasUnicas(Array.from(categoriasSet));
+      setCategoriasUnicas(Array.from(categoriasSet).sort());
+      console.log(`Exibindo ${todosProdutos.length} produtos em ${categoriasSet.size} categorias`);
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
       toast({
@@ -87,7 +88,7 @@ const AdminCategorias: React.FC = () => {
             onClick={() => navigate('/admin/produtos')}
             className="w-full justify-between"
           >
-            Todos os Produtos
+            Todos os Produtos ({produtos.length})
             <ChevronRight className="h-4 w-4" />
           </Button>
           

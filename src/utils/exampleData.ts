@@ -80,18 +80,33 @@ export function obterTodosProdutos(): Produto[] {
     let produtos: Produto[] = [];
     
     if (storedProdutos) {
-      produtos = JSON.parse(storedProdutos);
+      // Combine localStorage products with dados.ts products, avoiding duplicates
+      const storedProdutosArray = JSON.parse(storedProdutos);
+      const produtosDadosIds = new Set(produtosDados.map(p => p.id));
+      
+      // Add produtos from localStorage
+      produtos = [...storedProdutosArray];
+      
+      // Add produtos from dados.ts that aren't already in localStorage
+      produtosDados.forEach(produto => {
+        if (!produtos.some(p => p.id === produto.id)) {
+          produtos.push(produto);
+        }
+      });
+      
+      console.log('Total de produtos carregados:', produtos.length);
     } else {
       // Se não existirem produtos armazenados, combinar os dados
       produtos = [...produtosExemplo, ...produtosDados];
       localStorage.setItem('produtos', JSON.stringify(produtos));
-      console.log('Produtos combinados carregados com sucesso!');
+      console.log('Produtos combinados carregados com sucesso! Total:', produtos.length);
     }
     
     return produtos;
   } catch (error) {
     console.error('Erro ao obter produtos:', error);
-    return [];
+    // Fallback to return all produtos from dados.ts
+    return produtosDados;
   }
 }
 
@@ -104,7 +119,24 @@ export function garantirDadosExemplo() {
     if (!storedProdutos) {
       const todosProdutos = [...produtosExemplo, ...produtosDados];
       localStorage.setItem('produtos', JSON.stringify(todosProdutos));
-      console.log('Produtos de exemplo e dados iniciais carregados com sucesso!');
+      console.log('Produtos de exemplo e dados iniciais carregados com sucesso! Total:', todosProdutos.length);
+    } else {
+      // Verificar se todos os produtos de dados.ts estão no localStorage
+      const storedProdutosArray = JSON.parse(storedProdutos);
+      let produtosAtualizados = [...storedProdutosArray];
+      let adicionados = 0;
+      
+      produtosDados.forEach(produto => {
+        if (!produtosAtualizados.some(p => p.id === produto.id)) {
+          produtosAtualizados.push(produto);
+          adicionados++;
+        }
+      });
+      
+      if (adicionados > 0) {
+        localStorage.setItem('produtos', JSON.stringify(produtosAtualizados));
+        console.log(`Adicionados ${adicionados} produtos de dados.ts que não estavam no localStorage`);
+      }
     }
   } catch (error) {
     console.error('Erro ao carregar dados de exemplo:', error);

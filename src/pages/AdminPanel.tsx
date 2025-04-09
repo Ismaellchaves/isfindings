@@ -6,13 +6,14 @@ import StatusBar from '@/components/StatusBar';
 import { Button } from '@/components/ui/button';
 import { toast } from "@/hooks/use-toast";
 import { Produto } from '@/lib/tipos';
-import { produtos as produtosIniciais } from '@/lib/dados';
-import { garantirDadosExemplo } from '@/utils/exampleData';
+import { categorias } from '@/lib/dados';
+import { garantirDadosExemplo, obterTodosProdutos } from '@/utils/exampleData';
 
 const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
   const [produtosCount, setProdutosCount] = useState(0);
   const [categoriasCount, setCategoriasCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Verificar se o usuário está autenticado como administrador
   useEffect(() => {
@@ -25,25 +26,23 @@ const AdminPanel: React.FC = () => {
   // Carregar contagem de produtos e categorias
   useEffect(() => {
     try {
-      // Garantir que existam dados de exemplo
+      setIsLoading(true);
+      
+      // Garantir que existam dados de exemplo e que todos os produtos de dados.ts estejam presentes
       garantirDadosExemplo();
 
-      // Carregar produtos do localStorage
-      const storedProdutos = localStorage.getItem('produtos');
-      let produtos: Produto[] = [];
-      
-      if (storedProdutos) {
-        produtos = JSON.parse(storedProdutos);
-      } else {
-        // Se não houver produtos em localStorage, usar dados iniciais
-        produtos = produtosIniciais;
-      }
-      
-      setProdutosCount(produtos.length);
+      // Carregar todos os produtos
+      const todosProdutos = obterTodosProdutos();
+      setProdutosCount(todosProdutos.length);
       
       // Extrair categorias únicas
-      const categorias = [...new Set(produtos.map(produto => produto.categoria))];
-      setCategoriasCount(categorias.length);
+      const categoriasUnicas = new Set([
+        ...todosProdutos.map(produto => produto.categoria),
+        ...categorias.map(categoria => categoria.nome)
+      ]);
+      
+      setCategoriasCount(categoriasUnicas.size);
+      console.log(`Carregados ${todosProdutos.length} produtos em ${categoriasUnicas.size} categorias`);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
       toast({
@@ -51,6 +50,8 @@ const AdminPanel: React.FC = () => {
         description: "Não foi possível carregar os dados do painel.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -85,7 +86,11 @@ const AdminPanel: React.FC = () => {
                   <Package2 className="w-5 h-5 text-blue-500" />
                 </div>
                 <div>
-                  <span className="text-2xl font-bold">{produtosCount}</span>
+                  {isLoading ? (
+                    <span className="text-2xl font-bold">...</span>
+                  ) : (
+                    <span className="text-2xl font-bold">{produtosCount}</span>
+                  )}
                   <span className="block text-sm text-gray-500">Produtos</span>
                 </div>
               </div>
@@ -97,7 +102,11 @@ const AdminPanel: React.FC = () => {
                   <BaggageClaim className="w-5 h-5 text-green-500" />
                 </div>
                 <div>
-                  <span className="text-2xl font-bold">{categoriasCount}</span>
+                  {isLoading ? (
+                    <span className="text-2xl font-bold">...</span>
+                  ) : (
+                    <span className="text-2xl font-bold">{categoriasCount}</span>
+                  )}
                   <span className="block text-sm text-gray-500">Categorias</span>
                 </div>
               </div>
