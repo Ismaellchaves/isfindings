@@ -1,27 +1,63 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Minus, Plus, ChevronRight } from 'lucide-react';
 import StatusBar from '@/components/StatusBar';
 import HeaderBack from '@/components/HeaderBack';
 import ProductCard from '@/components/ProductCard';
-import { produtos } from '@/lib/dados';
+import { Produto } from '@/lib/tipos';
+import { obterTodosProdutos } from '@/utils/exampleData';
 
 const Detalhes: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [quantidade, setQuantidade] = useState(1);
   const [favorito, setFavorito] = useState(false);
+  const [produto, setProduto] = useState<Produto | null>(null);
+  const [produtosSimilares, setProdutosSimilares] = useState<Produto[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Encontrar o produto pelos parâmetros da URL
-  const produto = produtos.find(p => p.id === id);
+  useEffect(() => {
+    setIsLoading(true);
+    
+    // Obter todos os produtos
+    const todosProdutos = obterTodosProdutos();
+    
+    // Encontrar o produto pelos parâmetros da URL
+    const produtoEncontrado = todosProdutos.find(p => p.id === id);
+    
+    if (produtoEncontrado) {
+      setProduto(produtoEncontrado);
+      
+      // Produtos similares (mesma categoria, excluindo o atual)
+      const similares = todosProdutos
+        .filter(p => p.id !== id && p.categoria === produtoEncontrado.categoria)
+        .slice(0, 2);
+      
+      setProdutosSimilares(similares);
+    }
+    
+    setIsLoading(false);
+  }, [id]);
   
-  // Produtos similares
-  const produtosSimilares = produtos.filter(p => p.id !== id).slice(0, 2);
+  if (isLoading) {
+    return (
+      <>
+        <StatusBar />
+        <div className="page-container flex items-center justify-center">
+          <p>Carregando produto...</p>
+        </div>
+      </>
+    );
+  }
   
   if (!produto) {
     return (
-      <div className="page-container flex items-center justify-center">
-        <p>Produto não encontrado.</p>
-      </div>
+      <>
+        <StatusBar />
+        <div className="page-container flex items-center justify-center">
+          <p>Produto não encontrado.</p>
+        </div>
+      </>
     );
   }
   

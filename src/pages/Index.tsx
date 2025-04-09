@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import StatusBar from '@/components/StatusBar';
@@ -7,11 +8,22 @@ import SearchBar from '@/components/SearchBar';
 import PromoBanner from '@/components/PromoBanner';
 import CategoryList from '@/components/CategoryList';
 import ProductCard from '@/components/ProductCard';
-import { produtos } from '@/lib/dados';
+import { Produto } from '@/lib/tipos';
+import { obterTodosProdutos } from '@/utils/exampleData';
 
 const Index: React.FC = () => {
-  const [showAll, setShowAll] = useState(false); // Estado para controlar a visualização
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [showAll, setShowAll] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const limit = 4; // Limite inicial de produtos exibidos
+
+  useEffect(() => {
+    // Carregar todos os produtos (localStorage + dados.ts)
+    setIsLoading(true);
+    const todosProdutos = obterTodosProdutos();
+    setProdutos(todosProdutos);
+    setIsLoading(false);
+  }, []);
 
   // Decide quantos produtos mostrar com base no estado `showAll`
   const displayProducts = showAll ? produtos : produtos.slice(0, limit);
@@ -36,15 +48,21 @@ const Index: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {displayProducts.map((produto) => (
-              <ProductCard
-                key={produto.id}
-                produto={produto}
-                favorito={produto.id === '1'}
-              />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <p>Carregando produtos...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {displayProducts.map((produto) => (
+                <ProductCard
+                  key={produto.id}
+                  produto={produto}
+                  favorito={false}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <Navbar />
