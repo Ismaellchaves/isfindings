@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Layers, CreditCard, Package2, BaggageClaim, Database } from 'lucide-react';
+import { ArrowLeft, Layers, CreditCard, Package2, BaggageClaim } from 'lucide-react';
 import StatusBar from '@/components/StatusBar';
 import { Button } from '@/components/ui/button';
 import { toast } from "@/hooks/use-toast";
@@ -121,30 +121,6 @@ const AdminPanel: React.FC = () => {
               <div>
                 <span className="block font-bold">Gerenciar Produtos</span>
                 <span className="text-sm opacity-75">Adicione, edite ou remova produtos</span>
-              </div>
-            </span>
-          </Button>
-
-          <Button 
-            variant="outline" 
-            className="w-full flex items-center justify-between p-6 text-left h-auto mt-2"
-            onClick={() => {
-              localStorage.removeItem('produtos');
-              localStorage.removeItem('categorias');
-              toast({
-                title: "Dados resetados",
-                description: "Os dados de exemplo foram restaurados.",
-              });
-              window.location.reload();
-            }}
-          >
-            <span className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <Database className="w-5 h-5 text-red-500" />
-              </div>
-              <div>
-                <span className="block font-bold">Resetar Dados</span>
-                <span className="text-sm opacity-75">Limpar os dados e restaurar exemplos</span>
               </div>
             </span>
           </Button>
