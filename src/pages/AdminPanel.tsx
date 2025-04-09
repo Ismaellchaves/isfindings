@@ -1,20 +1,47 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Layers, CreditCard } from 'lucide-react';
+import { ArrowLeft, Layers, CreditCard, Package2, BaggageClaim, Database } from 'lucide-react';
 import StatusBar from '@/components/StatusBar';
 import { Button } from '@/components/ui/button';
+import { toast } from "@/hooks/use-toast";
+import { Produto } from '@/lib/tipos';
 
 const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
+  const [produtosCount, setProdutosCount] = useState(0);
+  const [categoriasCount, setCategoriasCount] = useState(0);
   
   // Verificar se o usuário está autenticado como administrador
-  React.useEffect(() => {
+  useEffect(() => {
     const isAdmin = localStorage.getItem('isAdmin');
     if (!isAdmin) {
       navigate('/perfil');
     }
   }, [navigate]);
+
+  // Carregar contagem de produtos e categorias
+  useEffect(() => {
+    try {
+      // Carregar produtos do localStorage
+      const storedProdutos = localStorage.getItem('produtos');
+      if (storedProdutos) {
+        const produtos: Produto[] = JSON.parse(storedProdutos);
+        setProdutosCount(produtos.length);
+        
+        // Extrair categorias únicas
+        const categorias = [...new Set(produtos.map(produto => produto.categoria))];
+        setCategoriasCount(categorias.length);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os dados do painel.",
+        variant: "destructive",
+      });
+    }
+  }, []);
 
   return (
     <>
@@ -37,6 +64,33 @@ const AdminPanel: React.FC = () => {
             <p className="text-orange-700">
               Aqui você pode gerenciar todos os produtos e categorias do seu aplicativo.
             </p>
+          </div>
+
+          {/* Dashboard Cards */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-white p-4 rounded-xl shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Package2 className="w-5 h-5 text-blue-500" />
+                </div>
+                <div>
+                  <span className="text-2xl font-bold">{produtosCount}</span>
+                  <span className="block text-sm text-gray-500">Produtos</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white p-4 rounded-xl shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <BaggageClaim className="w-5 h-5 text-green-500" />
+                </div>
+                <div>
+                  <span className="text-2xl font-bold">{categoriasCount}</span>
+                  <span className="block text-sm text-gray-500">Categorias</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <Button 
@@ -67,6 +121,30 @@ const AdminPanel: React.FC = () => {
               <div>
                 <span className="block font-bold">Gerenciar Produtos</span>
                 <span className="text-sm opacity-75">Adicione, edite ou remova produtos</span>
+              </div>
+            </span>
+          </Button>
+
+          <Button 
+            variant="outline" 
+            className="w-full flex items-center justify-between p-6 text-left h-auto mt-2"
+            onClick={() => {
+              localStorage.removeItem('produtos');
+              localStorage.removeItem('categorias');
+              toast({
+                title: "Dados resetados",
+                description: "Os dados de exemplo foram restaurados.",
+              });
+              window.location.reload();
+            }}
+          >
+            <span className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <Database className="w-5 h-5 text-red-500" />
+              </div>
+              <div>
+                <span className="block font-bold">Resetar Dados</span>
+                <span className="text-sm opacity-75">Limpar os dados e restaurar exemplos</span>
               </div>
             </span>
           </Button>

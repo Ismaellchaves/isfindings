@@ -19,6 +19,7 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { Produto } from '@/lib/tipos';
+import { garantirDadosExemplo } from '@/utils/exampleData';
 
 const AdminCategoriaProdutos: React.FC = () => {
   const navigate = useNavigate();
@@ -30,6 +31,8 @@ const AdminCategoriaProdutos: React.FC = () => {
   const [produtoToDelete, setProdutoToDelete] = useState<string | null>(null);
 
   useEffect(() => {
+    // Garantir que existam dados de exemplo
+    garantirDadosExemplo();
     loadProdutos();
   }, [categoria]);
 
@@ -47,6 +50,23 @@ const AdminCategoriaProdutos: React.FC = () => {
             p => p.categoria === decodeURIComponent(categoria)
           );
           setProdutosFiltrados(filtrados);
+        }
+      } else {
+        // Se não houver produtos, carregue os dados de exemplo
+        garantirDadosExemplo();
+        // Tente novamente carregar os produtos
+        const reloadProdutos = localStorage.getItem('produtos');
+        if (reloadProdutos) {
+          const parsedProdutos: Produto[] = JSON.parse(reloadProdutos);
+          setProdutos(parsedProdutos);
+          
+          // Filtrar produtos pela categoria
+          if (categoria) {
+            const filtrados = parsedProdutos.filter(
+              p => p.categoria === decodeURIComponent(categoria)
+            );
+            setProdutosFiltrados(filtrados);
+          }
         }
       }
     } catch (error) {

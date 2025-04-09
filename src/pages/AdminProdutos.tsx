@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -39,6 +38,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { categorias } from '@/lib/dados';
+import { garantirDadosExemplo } from '@/utils/exampleData';
 
 const AdminProdutos: React.FC = () => {
   const navigate = useNavigate();
@@ -62,6 +62,9 @@ const AdminProdutos: React.FC = () => {
     .filter(gender => gender && gender.trim() !== '');
 
   useEffect(() => {
+    // Garantir que existam dados de exemplo
+    garantirDadosExemplo();
+    // Carregar produtos
     loadProdutos();
   }, []);
 
@@ -104,8 +107,18 @@ const AdminProdutos: React.FC = () => {
         setProdutos(parsedProdutos);
         setFilteredProdutos(parsedProdutos);
       } else {
-        setProdutos([]);
-        setFilteredProdutos([]);
+        // Se não houver produtos, carregue os dados de exemplo
+        garantirDadosExemplo();
+        // Tente novamente carregar os produtos
+        const reloadProdutos = localStorage.getItem('produtos');
+        if (reloadProdutos) {
+          const parsedProdutos = JSON.parse(reloadProdutos);
+          setProdutos(parsedProdutos);
+          setFilteredProdutos(parsedProdutos);
+        } else {
+          setProdutos([]);
+          setFilteredProdutos([]);
+        }
       }
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
