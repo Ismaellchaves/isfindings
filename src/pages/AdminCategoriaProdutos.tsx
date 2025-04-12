@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
@@ -18,7 +19,7 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { Produto } from '@/lib/tipos';
-import { garantirDadosExemplo, obterTodosProdutos } from '@/utils/exampleData';
+import { garantirDadosExemplo, obterTodosProdutos, salvarProdutos } from '@/utils/exampleData';
 
 const AdminCategoriaProdutos: React.FC = () => {
   const navigate = useNavigate();
@@ -71,7 +72,8 @@ const AdminCategoriaProdutos: React.FC = () => {
 
     try {
       const updatedProdutos = produtos.filter(p => p.id !== produtoToDelete);
-      localStorage.setItem('produtos', JSON.stringify(updatedProdutos));
+      // Usar nova função salvarProdutos para salvar e notificar
+      salvarProdutos(updatedProdutos);
       setProdutos(updatedProdutos);
       setProdutosFiltrados(prev => prev.filter(p => p.id !== produtoToDelete));
       

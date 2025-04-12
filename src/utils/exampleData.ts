@@ -73,7 +73,14 @@ export const produtosExemplo: Produto[] = [
   }
 ];
 
-// Função para combinar produtos do localStorage e produtos iniciais
+// Função para disparar evento de mudança no localStorage
+function triggerStorageUpdate() {
+  // Disparar evento customizado para notificar outros componentes
+  const event = new Event('storage');
+  window.dispatchEvent(event);
+}
+
+// Função para obter todos os produtos do localStorage e dados.ts
 export function obterTodosProdutos(): Produto[] {
   try {
     const storedProdutos = localStorage.getItem('produtos');
@@ -82,7 +89,6 @@ export function obterTodosProdutos(): Produto[] {
     if (storedProdutos) {
       // Combine localStorage products with dados.ts products, avoiding duplicates
       const storedProdutosArray = JSON.parse(storedProdutos);
-      const produtosDadosIds = new Set(produtosDados.map(p => p.id));
       
       // Add produtos from localStorage
       produtos = [...storedProdutosArray];
@@ -120,6 +126,9 @@ export function garantirDadosExemplo() {
       const todosProdutos = [...produtosExemplo, ...produtosDados];
       localStorage.setItem('produtos', JSON.stringify(todosProdutos));
       console.log('Produtos de exemplo e dados iniciais carregados com sucesso! Total:', todosProdutos.length);
+      
+      // Notificar outros componentes
+      triggerStorageUpdate();
     } else {
       // Verificar se todos os produtos de dados.ts estão no localStorage
       const storedProdutosArray = JSON.parse(storedProdutos);
@@ -136,9 +145,27 @@ export function garantirDadosExemplo() {
       if (adicionados > 0) {
         localStorage.setItem('produtos', JSON.stringify(produtosAtualizados));
         console.log(`Adicionados ${adicionados} produtos de dados.ts que não estavam no localStorage`);
+        
+        // Notificar outros componentes
+        triggerStorageUpdate();
       }
     }
   } catch (error) {
     console.error('Erro ao carregar dados de exemplo:', error);
+  }
+}
+
+// Função para salvar produtos no localStorage e notificar componentes
+export function salvarProdutos(produtos: Produto[]) {
+  try {
+    localStorage.setItem('produtos', JSON.stringify(produtos));
+    console.log('Produtos salvos com sucesso! Total:', produtos.length);
+    
+    // Notificar outros componentes
+    triggerStorageUpdate();
+    return true;
+  } catch (error) {
+    console.error('Erro ao salvar produtos:', error);
+    return false;
   }
 }

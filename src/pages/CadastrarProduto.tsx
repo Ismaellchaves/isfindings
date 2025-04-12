@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Save } from 'lucide-react';
@@ -23,8 +22,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { obterTodosProdutos, salvarProdutos } from '@/utils/exampleData';
 
-// Esquema de validação do formulário usando Zod
 const produtoSchema = z.object({
   nome: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
   preco: z.string().min(1, { message: 'Informe o preço' }),
@@ -44,7 +43,6 @@ const CadastrarProduto: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Configuração do formulário
   const form = useForm<ProdutoFormValues>({
     resolver: zodResolver(produtoSchema),
     defaultValues: {
@@ -65,9 +63,8 @@ const CadastrarProduto: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Formatar dados do produto
       const novoProduto: Produto = {
-        id: generateId(), // Usando nosso próprio gerador de ID
+        id: generateId(),
         nome: values.nome,
         preco: parseFloat(values.preco),
         precoAntigo: values.precoAntigo ? parseFloat(values.precoAntigo) : undefined,
@@ -82,15 +79,9 @@ const CadastrarProduto: React.FC = () => {
         genero: values.genero,
       };
 
-      // Carrega os produtos existentes ou cria um array vazio
-      const storedProdutos = localStorage.getItem('produtos');
-      const produtos: Produto[] = storedProdutos ? JSON.parse(storedProdutos) : [];
-      
-      // Adiciona o novo produto
+      const produtos = obterTodosProdutos();
       produtos.push(novoProduto);
-      
-      // Salva no localStorage
-      localStorage.setItem('produtos', JSON.stringify(produtos));
+      salvarProdutos(produtos);
       
       toast({
         title: "Produto cadastrado",
@@ -123,7 +114,7 @@ const CadastrarProduto: React.FC = () => {
             <span>Voltar</span>
           </button>
           <h1 className="title-text">Cadastrar Produto</h1>
-          <div className="w-20"></div> {/* Spacer for alignment */}
+          <div className="w-20"></div>
         </div>
 
         <Card className="p-4">

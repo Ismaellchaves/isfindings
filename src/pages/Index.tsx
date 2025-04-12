@@ -19,10 +19,26 @@ const Index: React.FC = () => {
 
   useEffect(() => {
     // Carregar todos os produtos (localStorage + dados.ts)
-    setIsLoading(true);
-    const todosProdutos = obterTodosProdutos();
-    setProdutos(todosProdutos);
-    setIsLoading(false);
+    const loadProdutos = () => {
+      setIsLoading(true);
+      const todosProdutos = obterTodosProdutos();
+      setProdutos(todosProdutos);
+      setIsLoading(false);
+    };
+
+    loadProdutos();
+
+    // Event listener para atualizar produtos quando localStorage mudar
+    const handleStorageChange = () => {
+      console.log('Storage changed, reloading products');
+      loadProdutos();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   // Decide quantos produtos mostrar com base no estado `showAll`

@@ -17,26 +17,42 @@ const Detalhes: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    setIsLoading(true);
-    
-    // Obter todos os produtos
-    const todosProdutos = obterTodosProdutos();
-    
-    // Encontrar o produto pelos parâmetros da URL
-    const produtoEncontrado = todosProdutos.find(p => p.id === id);
-    
-    if (produtoEncontrado) {
-      setProduto(produtoEncontrado);
+    const loadProdutoData = () => {
+      setIsLoading(true);
       
-      // Produtos similares (mesma categoria, excluindo o atual)
-      const similares = todosProdutos
-        .filter(p => p.id !== id && p.categoria === produtoEncontrado.categoria)
-        .slice(0, 2);
+      // Obter todos os produtos
+      const todosProdutos = obterTodosProdutos();
       
-      setProdutosSimilares(similares);
-    }
+      // Encontrar o produto pelos parâmetros da URL
+      const produtoEncontrado = todosProdutos.find(p => p.id === id);
+      
+      if (produtoEncontrado) {
+        setProduto(produtoEncontrado);
+        
+        // Produtos similares (mesma categoria, excluindo o atual)
+        const similares = todosProdutos
+          .filter(p => p.id !== id && p.categoria === produtoEncontrado.categoria)
+          .slice(0, 2);
+        
+        setProdutosSimilares(similares);
+      }
+      
+      setIsLoading(false);
+    };
+
+    loadProdutoData();
     
-    setIsLoading(false);
+    // Event listener para atualizar produto quando localStorage mudar
+    const handleStorageChange = () => {
+      console.log('Storage changed, reloading product details');
+      loadProdutoData();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, [id]);
   
   if (isLoading) {

@@ -12,31 +12,43 @@ const CategoriaDetalhe: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [produtosFiltrados, setProdutosFiltrados] = useState<Produto[]>([]);
   const [categoria, setCategoria] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Encontra a categoria com base no ID
-    const categoriaEncontrada = categorias.find(cat => cat.id === id);
+    const loadCategoriaData = () => {
+      setIsLoading(true);
+      // Encontra a categoria com base no ID
+      const categoriaEncontrada = categorias.find(cat => cat.id === id);
 
-    if (categoriaEncontrada) {
-      setCategoria(categoriaEncontrada.nome);
+      if (categoriaEncontrada) {
+        setCategoria(categoriaEncontrada.nome);
 
-      // Obter todos os produtos
-      const todosProdutos = obterTodosProdutos();
+        // Obter todos os produtos
+        const todosProdutos = obterTodosProdutos();
 
-      // Extrai o gênero da categoria (último caractere do ID)
-      const generoCategoria = categoriaEncontrada.id.split('-').pop(); // Retorna 'f' ou 'm'
-
-      // Filtra produtos pela categoria e pelo gênero
-      const produtosDaCategoria = todosProdutos.filter(produto => {
-        const generoProduto = produto.id.split('-').pop(); // Retorna 'f' ou 'm'
-        return (
-          produto.categoria.toLowerCase() === categoriaEncontrada.id.split('-')[0].toLowerCase() &&
-          generoProduto === generoCategoria
+        // Filtra produtos pela categoria
+        const produtosDaCategoria = todosProdutos.filter(produto => 
+          produto.categoria.toLowerCase() === categoriaEncontrada.id.split('-')[0].toLowerCase()
         );
-      });
 
-      setProdutosFiltrados(produtosDaCategoria);
-    }
+        setProdutosFiltrados(produtosDaCategoria);
+      }
+      setIsLoading(false);
+    };
+
+    loadCategoriaData();
+    
+    // Event listener para atualizar produtos quando localStorage mudar
+    const handleStorageChange = () => {
+      console.log('Storage changed, reloading category products');
+      loadCategoriaData();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, [id]);
 
   return (
@@ -45,7 +57,11 @@ const CategoriaDetalhe: React.FC = () => {
       <div className="page-container">
         <HeaderBack title={categoria} />
 
-        {produtosFiltrados.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <p>Carregando produtos...</p>
+          </div>
+        ) : produtosFiltrados.length > 0 ? (
           <div className="grid grid-cols-2 gap-4">
             {produtosFiltrados.map((produto) => (
               <ProductCard

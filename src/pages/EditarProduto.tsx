@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, Save } from 'lucide-react';
@@ -22,8 +21,8 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { obterTodosProdutos, salvarProdutos } from '@/utils/exampleData';
 
-// Esquema de validação do formulário usando Zod
 const produtoSchema = z.object({
   nome: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
   preco: z.string().min(1, { message: 'Informe o preço' }),
@@ -44,7 +43,6 @@ const EditarProduto: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Configuração do formulário
   const form = useForm<ProdutoFormValues>({
     resolver: zodResolver(produtoSchema),
     defaultValues: {
@@ -62,20 +60,8 @@ const EditarProduto: React.FC = () => {
   });
 
   useEffect(() => {
-    // Carrega os produtos do localStorage
-    const storedProdutos = localStorage.getItem('produtos');
-    if (!storedProdutos) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível encontrar os produtos.",
-        variant: "destructive",
-      });
-      navigate('/admin/produtos');
-      return;
-    }
-
-    const produtos: Produto[] = JSON.parse(storedProdutos);
-    const produto = produtos.find(p => p.id === id);
+    const todosProdutos = obterTodosProdutos();
+    const produto = todosProdutos.find(p => p.id === id);
     
     if (!produto) {
       toast({
@@ -87,7 +73,6 @@ const EditarProduto: React.FC = () => {
       return;
     }
 
-    // Preenche o formulário com os dados do produto
     form.reset({
       nome: produto.nome,
       preco: produto.preco.toString(),
@@ -106,7 +91,6 @@ const EditarProduto: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Formatar dados do produto
       const produtoAtualizado: Produto = {
         id: id as string,
         nome: values.nome,
@@ -122,20 +106,14 @@ const EditarProduto: React.FC = () => {
         status: 'ativo',
       };
 
-      // Carrega os produtos existentes
-      const storedProdutos = localStorage.getItem('produtos');
-      if (!storedProdutos) throw new Error("Produtos não encontrados");
+      const todosProdutos = obterTodosProdutos();
       
-      const produtos: Produto[] = JSON.parse(storedProdutos);
-      
-      // Atualiza o produto
-      const index = produtos.findIndex(p => p.id === id);
+      const index = todosProdutos.findIndex(p => p.id === id);
       if (index === -1) throw new Error("Produto não encontrado");
       
-      produtos[index] = produtoAtualizado;
+      todosProdutos[index] = produtoAtualizado;
       
-      // Salva no localStorage
-      localStorage.setItem('produtos', JSON.stringify(produtos));
+      salvarProdutos(todosProdutos);
       
       toast({
         title: "Produto atualizado",
@@ -168,7 +146,7 @@ const EditarProduto: React.FC = () => {
             <span>Voltar</span>
           </button>
           <h1 className="title-text">Editar Produto</h1>
-          <div className="w-20"></div> {/* Spacer for alignment */}
+          <div className="w-20"></div>
         </div>
 
         <Card className="p-4">

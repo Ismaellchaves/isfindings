@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -38,7 +39,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { categorias } from '@/lib/dados';
-import { garantirDadosExemplo, obterTodosProdutos } from '@/utils/exampleData';
+import { garantirDadosExemplo, obterTodosProdutos, salvarProdutos } from '@/utils/exampleData';
 
 const AdminProdutos: React.FC = () => {
   const navigate = useNavigate();
@@ -127,8 +128,10 @@ const AdminProdutos: React.FC = () => {
 
     try {
       const updatedProdutos = produtos.filter(p => p.id !== produtoToDelete);
-      localStorage.setItem('produtos', JSON.stringify(updatedProdutos));
+      // Usar a nova função salvarProdutos para salvar e notificar
+      salvarProdutos(updatedProdutos);
       setProdutos(updatedProdutos);
+      setFilteredProdutos(prev => prev.filter(p => p.id !== produtoToDelete));
       
       toast({
         title: "Produto excluído",
