@@ -73,14 +73,19 @@ export const produtosExemplo: Produto[] = [
   }
 ];
 
+// Chave usada para armazenar o timestamp da última atualização
+const LAST_UPDATE_KEY = 'produtos_ultima_atualizacao';
+
 // Função para disparar evento de mudança no localStorage
 function triggerStorageUpdate() {
   // Disparar evento customizado para notificar outros componentes
   window.dispatchEvent(new Event('storage'));
   
-  // Também disparamos um evento personalizado que será capturado por qualquer dispositivo
+  // Armazenar o timestamp da última atualização
   try {
-    localStorage.setItem('last_update', new Date().toISOString());
+    const timestamp = new Date().toISOString();
+    localStorage.setItem(LAST_UPDATE_KEY, timestamp);
+    console.log('Atualização disparada com timestamp:', timestamp);
   } catch (error) {
     console.error('Erro ao atualizar timestamp:', error);
   }
@@ -176,11 +181,28 @@ export function salvarProdutos(produtos: Produto[]) {
   }
 }
 
-// Nova função para verificar atualizações de produtos em outros dispositivos
+// Função para verificar atualizações de produtos em outros dispositivos
 export function configurarVerificacaoAtualizacao(callback: () => void) {
+  let lastCheckedTimestamp: string | null = null;
+  
+  // Verificar timestamp atual
+  lastCheckedTimestamp = localStorage.getItem(LAST_UPDATE_KEY);
+  
+  // Função que verifica se houve atualizações
+  const verificarAtualizacoes = () => {
+    const currentTimestamp = localStorage.getItem(LAST_UPDATE_KEY);
+    
+    // Se houver uma nova atualização (timestamp diferente)
+    if (currentTimestamp && currentTimestamp !== lastCheckedTimestamp) {
+      console.log('Detectada atualização em outro dispositivo:', currentTimestamp);
+      lastCheckedTimestamp = currentTimestamp;
+      callback();
+    }
+  };
+  
   // Ouvir evento storage padrão para atualização cross-tab
   const handleStorageChange = (event: StorageEvent) => {
-    if (event.key === 'produtos' || event.key === 'last_update') {
+    if (event.key === 'produtos' || event.key === LAST_UPDATE_KEY) {
       console.log('Dados atualizados em outro dispositivo/aba, recarregando produtos');
       callback();
     }
@@ -189,10 +211,8 @@ export function configurarVerificacaoAtualizacao(callback: () => void) {
   // Adiciona listener para eventos de storage de outros dispositivos/abas
   window.addEventListener('storage', handleStorageChange);
   
-  // Também verifica periodicamente para garantir atualização em todos os dispositivos
-  const intervalId = setInterval(() => {
-    callback();
-  }, 60000); // Verifica a cada minuto
+  // Verificar atualizações mais frequentemente (a cada 15 segundos)
+  const intervalId = setInterval(verificarAtualizacoes, 15000);
   
   // Retorna função para remover os listeners quando necessário
   return () => {
