@@ -19,7 +19,7 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { Produto } from '@/lib/tipos';
-import { garantirDadosExemplo, obterTodosProdutos, salvarProdutos } from '@/utils/exampleData';
+import { garantirDadosExemplo, obterTodosProdutos, salvarProdutos, configurarVerificacaoAtualizacao } from '@/utils/exampleData';
 
 const AdminCategoriaProdutos: React.FC = () => {
   const navigate = useNavigate();
@@ -34,6 +34,13 @@ const AdminCategoriaProdutos: React.FC = () => {
     // Garantir que existam dados de exemplo
     garantirDadosExemplo();
     loadProdutos();
+    
+    // Configurar verificação de atualizações em outros dispositivos
+    const cleanupVerificacao = configurarVerificacaoAtualizacao(loadProdutos);
+    
+    return () => {
+      cleanupVerificacao();
+    };
   }, [categoria]);
 
   const loadProdutos = () => {

@@ -76,8 +76,14 @@ export const produtosExemplo: Produto[] = [
 // Função para disparar evento de mudança no localStorage
 function triggerStorageUpdate() {
   // Disparar evento customizado para notificar outros componentes
-  const event = new Event('storage');
-  window.dispatchEvent(event);
+  window.dispatchEvent(new Event('storage'));
+  
+  // Também disparamos um evento personalizado que será capturado por qualquer dispositivo
+  try {
+    localStorage.setItem('last_update', new Date().toISOString());
+  } catch (error) {
+    console.error('Erro ao atualizar timestamp:', error);
+  }
 }
 
 // Função para obter todos os produtos do localStorage e dados.ts
@@ -168,4 +174,29 @@ export function salvarProdutos(produtos: Produto[]) {
     console.error('Erro ao salvar produtos:', error);
     return false;
   }
+}
+
+// Nova função para verificar atualizações de produtos em outros dispositivos
+export function configurarVerificacaoAtualizacao(callback: () => void) {
+  // Ouvir evento storage padrão para atualização cross-tab
+  const handleStorageChange = (event: StorageEvent) => {
+    if (event.key === 'produtos' || event.key === 'last_update') {
+      console.log('Dados atualizados em outro dispositivo/aba, recarregando produtos');
+      callback();
+    }
+  };
+
+  // Adiciona listener para eventos de storage de outros dispositivos/abas
+  window.addEventListener('storage', handleStorageChange);
+  
+  // Também verifica periodicamente para garantir atualização em todos os dispositivos
+  const intervalId = setInterval(() => {
+    callback();
+  }, 60000); // Verifica a cada minuto
+  
+  // Retorna função para remover os listeners quando necessário
+  return () => {
+    window.removeEventListener('storage', handleStorageChange);
+    clearInterval(intervalId);
+  };
 }

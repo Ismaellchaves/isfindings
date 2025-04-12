@@ -39,7 +39,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { categorias } from '@/lib/dados';
-import { garantirDadosExemplo, obterTodosProdutos, salvarProdutos } from '@/utils/exampleData';
+import { garantirDadosExemplo, obterTodosProdutos, salvarProdutos, configurarVerificacaoAtualizacao } from '@/utils/exampleData';
 
 const AdminProdutos: React.FC = () => {
   const navigate = useNavigate();
@@ -67,6 +67,13 @@ const AdminProdutos: React.FC = () => {
     garantirDadosExemplo();
     // Carregar produtos
     loadProdutos();
+    
+    // Configurar verificação de atualizações em outros dispositivos
+    const cleanupVerificacao = configurarVerificacaoAtualizacao(loadProdutos);
+    
+    return () => {
+      cleanupVerificacao();
+    };
   }, []);
 
   useEffect(() => {

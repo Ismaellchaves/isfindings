@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Produto } from '@/lib/tipos';
 import { categorias } from '@/lib/dados';
-import { garantirDadosExemplo, obterTodosProdutos } from '@/utils/exampleData';
+import { garantirDadosExemplo, obterTodosProdutos, configurarVerificacaoAtualizacao } from '@/utils/exampleData';
 
 const AdminCategorias: React.FC = () => {
   const navigate = useNavigate();
@@ -24,6 +24,13 @@ const AdminCategorias: React.FC = () => {
 
   useEffect(() => {
     loadProdutos();
+    
+    // Configurar verificação de atualizações em outros dispositivos
+    const cleanupVerificacao = configurarVerificacaoAtualizacao(loadProdutos);
+    
+    return () => {
+      cleanupVerificacao();
+    };
   }, []);
 
   const loadProdutos = () => {

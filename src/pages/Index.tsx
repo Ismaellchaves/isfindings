@@ -9,7 +9,7 @@ import PromoBanner from '@/components/PromoBanner';
 import CategoryList from '@/components/CategoryList';
 import ProductCard from '@/components/ProductCard';
 import { Produto } from '@/lib/tipos';
-import { obterTodosProdutos } from '@/utils/exampleData';
+import { obterTodosProdutos, configurarVerificacaoAtualizacao } from '@/utils/exampleData';
 
 const Index: React.FC = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -36,8 +36,12 @@ const Index: React.FC = () => {
 
     window.addEventListener('storage', handleStorageChange);
     
+    // Configurar verificação de atualizações em outros dispositivos
+    const cleanupVerificacao = configurarVerificacaoAtualizacao(loadProdutos);
+    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      cleanupVerificacao();
     };
   }, []);
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Minus, Plus, ChevronRight } from 'lucide-react';
@@ -6,7 +5,7 @@ import StatusBar from '@/components/StatusBar';
 import HeaderBack from '@/components/HeaderBack';
 import ProductCard from '@/components/ProductCard';
 import { Produto } from '@/lib/tipos';
-import { obterTodosProdutos } from '@/utils/exampleData';
+import { obterTodosProdutos, configurarVerificacaoAtualizacao } from '@/utils/exampleData';
 
 const Detalhes: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -50,8 +49,12 @@ const Detalhes: React.FC = () => {
 
     window.addEventListener('storage', handleStorageChange);
     
+    // Configurar verificação de atualizações em outros dispositivos
+    const cleanupVerificacao = configurarVerificacaoAtualizacao(loadProdutoData);
+    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      cleanupVerificacao();
     };
   }, [id]);
   

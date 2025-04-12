@@ -6,7 +6,7 @@ import HeaderBack from '@/components/HeaderBack';
 import ProductCard from '@/components/ProductCard';
 import { categorias } from '@/lib/dados';
 import { Produto } from '@/lib/tipos';
-import { obterTodosProdutos } from '@/utils/exampleData';
+import { obterTodosProdutos, configurarVerificacaoAtualizacao } from '@/utils/exampleData';
 
 const CategoriaDetalhe: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -46,8 +46,12 @@ const CategoriaDetalhe: React.FC = () => {
 
     window.addEventListener('storage', handleStorageChange);
     
+    // Configurar verificação de atualizações em outros dispositivos
+    const cleanupVerificacao = configurarVerificacaoAtualizacao(loadCategoriaData);
+    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      cleanupVerificacao();
     };
   }, [id]);
 
