@@ -169,8 +169,19 @@ export function garantirDadosExemplo() {
 // Função para salvar produtos no localStorage e notificar componentes
 export function salvarProdutos(produtos: Produto[]) {
   try {
-    localStorage.setItem('produtos', JSON.stringify(produtos));
-    console.log('Produtos salvos com sucesso! Total:', produtos.length);
+    // Adicionar data de publicação se não existir
+    const produtosComData = produtos.map(produto => {
+      if (!produto.data_publicacao) {
+        return {
+          ...produto,
+          data_publicacao: new Date().toISOString()
+        };
+      }
+      return produto;
+    });
+    
+    localStorage.setItem('produtos', JSON.stringify(produtosComData));
+    console.log('Produtos salvos com sucesso! Total:', produtosComData.length);
     
     // Notificar outros componentes
     triggerStorageUpdate();
