@@ -22,10 +22,12 @@ const AdminCategorias: React.FC = () => {
   const [produtosPorCategoria, setProdutosPorCategoria] = useState<Record<string, Produto[]>>({});
   const [categoriasUnicas, setCategoriasUnicas] = useState<string[]>([]);
 
+  // Lista de categorias a serem excluídas
+  const categoriasExcluidas = ['Calças', 'Camisetas', 'Vestidos', 'Calçados'];
+
   useEffect(() => {
     loadProdutos();
     
-    // Configurar verificação de atualizações em outros dispositivos
     const cleanupVerificacao = configurarVerificacaoAtualizacao(loadProdutos);
     
     return () => {
@@ -36,29 +38,34 @@ const AdminCategorias: React.FC = () => {
   const loadProdutos = () => {
     try {
       setLoading(true);
-      // Garantir que existam dados de exemplo e que todos os produtos de dados.ts estejam presentes
       garantirDadosExemplo();
       
-      // Obter todos os produtos
       const todosProdutos = obterTodosProdutos();
-      setProdutos(todosProdutos);
+      
+      // Filtrar produtos excluindo as categorias não desejadas
+      const produtosFiltrados = todosProdutos.filter(produto => 
+        !categoriasExcluidas.includes(produto.categoria || '')
+      );
+      
+      setProdutos(produtosFiltrados);
         
-      // Agrupar produtos por categoria
       const produtosPorCat: Record<string, Produto[]> = {};
       const categoriasSet = new Set<string>();
         
-      todosProdutos.forEach(produto => {
+      produtosFiltrados.forEach(produto => {
         const categoria = produto.categoria || 'Sem categoria';
-        if (!produtosPorCat[categoria]) {
-          produtosPorCat[categoria] = [];
+        if (!categoriasExcluidas.includes(categoria)) {
+          if (!produtosPorCat[categoria]) {
+            produtosPorCat[categoria] = [];
+          }
+          produtosPorCat[categoria].push(produto);
+          categoriasSet.add(categoria);
         }
-        produtosPorCat[categoria].push(produto);
-        categoriasSet.add(categoria);
       });
         
       setProdutosPorCategoria(produtosPorCat);
       setCategoriasUnicas(Array.from(categoriasSet).sort());
-      console.log(`Exibindo ${todosProdutos.length} produtos em ${categoriasSet.size} categorias`);
+      console.log(`Exibindo ${produtosFiltrados.length} produtos em ${categoriasSet.size} categorias`);
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
       toast({
