@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
@@ -10,7 +9,7 @@ import PromoBanner from '@/components/PromoBanner';
 import CategoryList from '@/components/CategoryList';
 import ProductCard from '@/components/ProductCard';
 import { Produto } from '@/lib/tipos';
-import { obterTodosProdutos, configurarVerificacaoAtualizacao } from '@/utils/exampleData';
+import { obterTodosProdutos, configurarVerificacaoAtualizacao, limparProdutosExemplo } from '@/utils/exampleData';
 
 const Index: React.FC = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -22,6 +21,9 @@ const Index: React.FC = () => {
   const loadProdutos = () => {
     setIsLoading(true);
     try {
+      // Remover produtos de exemplo que causam bug
+      limparProdutosExemplo();
+      
       const todosProdutos = obterTodosProdutos();
       // Ordenar produtos por data de publicação (mais recentes primeiro)
       const sortedProdutos = todosProdutos.sort((a, b) => {

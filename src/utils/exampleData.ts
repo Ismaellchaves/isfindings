@@ -3,76 +3,6 @@ import { Produto } from '@/lib/tipos';
 import { generateId } from '@/utils/id';
 import { produtos as produtosDados } from '@/lib/dados';
 
-// Produtos de exemplo para garantir que sempre existam dados para visualização
-export const produtosExemplo: Produto[] = [
-  {
-    id: generateId(),
-    nome: "Camiseta Básica",
-    preco: 49.90,
-    categoria: "Camisetas",
-    descricao: "Camiseta básica de algodão de alta qualidade",
-    imagem: "https://via.placeholder.com/300x300?text=Camiseta",
-    cores: ["Preto", "Branco", "Cinza"],
-    tamanhos: ["P", "M", "G", "GG"],
-    genero: "unissex",
-    link: "https://example.com/camiseta",
-    status: "ativo"
-  },
-  {
-    id: generateId(),
-    nome: "Calça Jeans Skinny",
-    preco: 129.90,
-    precoAntigo: 159.90,
-    categoria: "Calças",
-    descricao: "Calça jeans skinny de alta elasticidade",
-    imagem: "https://via.placeholder.com/300x300?text=Calca+Jeans",
-    cores: ["Azul Escuro", "Azul Claro", "Preto"],
-    tamanhos: ["36", "38", "40", "42", "44"],
-    genero: "feminino",
-    link: "https://example.com/calca-jeans",
-    status: "ativo"
-  },
-  {
-    id: generateId(),
-    nome: "Tênis Casual",
-    preco: 199.90,
-    categoria: "Calçados",
-    descricao: "Tênis casual confortável para o dia a dia",
-    imagem: "https://via.placeholder.com/300x300?text=Tenis+Casual",
-    cores: ["Preto", "Branco", "Cinza"],
-    tamanhos: ["39", "40", "41", "42", "43"],
-    genero: "masculino",
-    link: "https://example.com/tenis-casual",
-    status: "ativo"
-  },
-  {
-    id: generateId(),
-    nome: "Vestido Floral",
-    preco: 89.90,
-    categoria: "Vestidos",
-    descricao: "Vestido floral de verão, leve e confortável",
-    imagem: "https://via.placeholder.com/300x300?text=Vestido+Floral",
-    cores: ["Estampa Floral", "Azul", "Rosa"],
-    tamanhos: ["P", "M", "G"],
-    genero: "feminino",
-    link: "https://example.com/vestido-floral",
-    status: "ativo"
-  },
-  {
-    id: generateId(),
-    nome: "Camisa Social",
-    preco: 119.90,
-    categoria: "Camisas",
-    descricao: "Camisa social slim fit para ocasiões formais",
-    imagem: "https://via.placeholder.com/300x300?text=Camisa+Social",
-    cores: ["Branco", "Azul Claro", "Rosa Claro"],
-    tamanhos: ["P", "M", "G", "GG"],
-    genero: "masculino",
-    link: "https://example.com/camisa-social",
-    status: "ativo"
-  }
-];
-
 // Chave usada para armazenar o timestamp da última atualização
 const LAST_UPDATE_KEY = 'produtos_ultima_atualizacao';
 
@@ -113,10 +43,10 @@ export function obterTodosProdutos(): Produto[] {
       
       console.log('Total de produtos carregados:', produtos.length);
     } else {
-      // Se não existirem produtos armazenados, combinar os dados
-      produtos = [...produtosExemplo, ...produtosDados];
+      // Se não existirem produtos armazenados, usar apenas os dados do arquivo
+      produtos = [...produtosDados];
       localStorage.setItem('produtos', JSON.stringify(produtos));
-      console.log('Produtos combinados carregados com sucesso! Total:', produtos.length);
+      console.log('Produtos carregados com sucesso! Total:', produtos.length);
     }
     
     return produtos;
@@ -132,11 +62,11 @@ export function garantirDadosExemplo() {
   try {
     const storedProdutos = localStorage.getItem('produtos');
     
-    // Se não existirem produtos armazenados, carrega os exemplos e dados iniciais
+    // Se não existirem produtos armazenados, carrega apenas os dados iniciais
     if (!storedProdutos) {
-      const todosProdutos = [...produtosExemplo, ...produtosDados];
+      const todosProdutos = [...produtosDados];
       localStorage.setItem('produtos', JSON.stringify(todosProdutos));
-      console.log('Produtos de exemplo e dados iniciais carregados com sucesso! Total:', todosProdutos.length);
+      console.log('Dados iniciais carregados com sucesso! Total:', todosProdutos.length);
       
       // Notificar outros componentes
       triggerStorageUpdate();
@@ -230,4 +160,27 @@ export function configurarVerificacaoAtualizacao(callback: () => void) {
     window.removeEventListener('storage', handleStorageChange);
     clearInterval(intervalId);
   };
+}
+
+// Função para limpar os produtos de exemplo do localStorage
+export function limparProdutosExemplo() {
+  try {
+    const storedProdutos = localStorage.getItem('produtos');
+    if (storedProdutos) {
+      const produtosArray = JSON.parse(storedProdutos);
+      // Filtra os produtos, removendo os produtos problemáticos pelo nome
+      const nomesProdutosExemplo = ['Camiseta Básica', 'Calça Jeans Skinny', 'Tênis Casual', 'Vestido Floral', 'Camisa Social'];
+      const produtosFiltrados = produtosArray.filter(
+        (produto: Produto) => !nomesProdutosExemplo.includes(produto.nome)
+      );
+      localStorage.setItem('produtos', JSON.stringify(produtosFiltrados));
+      console.log(`Produtos de exemplo removidos. Total restante: ${produtosFiltrados.length}`);
+      triggerStorageUpdate();
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Erro ao limpar produtos de exemplo:', error);
+    return false;
+  }
 }
