@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
@@ -22,14 +21,9 @@ const AdminCategorias: React.FC = () => {
   const [produtosPorCategoria, setProdutosPorCategoria] = useState<Record<string, Produto[]>>({});
   const [categoriasUnicas, setCategoriasUnicas] = useState<string[]>([]);
 
-  // Lista de categorias a serem excluídas
-  const categoriasExcluidas = ['Calças', 'Camisetas', 'Vestidos', 'Calçados'];
-
   useEffect(() => {
     loadProdutos();
-    
     const cleanupVerificacao = configurarVerificacaoAtualizacao(loadProdutos);
-    
     return () => {
       cleanupVerificacao();
     };
@@ -39,33 +33,24 @@ const AdminCategorias: React.FC = () => {
     try {
       setLoading(true);
       garantirDadosExemplo();
-      
       const todosProdutos = obterTodosProdutos();
-      
-      // Filtrar produtos excluindo as categorias não desejadas
-      const produtosFiltrados = todosProdutos.filter(produto => 
-        !categoriasExcluidas.includes(produto.categoria || '')
-      );
-      
-      setProdutos(produtosFiltrados);
+      setProdutos(todosProdutos);
         
       const produtosPorCat: Record<string, Produto[]> = {};
       const categoriasSet = new Set<string>();
         
-      produtosFiltrados.forEach(produto => {
+      todosProdutos.forEach(produto => {
         const categoria = produto.categoria || 'Sem categoria';
-        if (!categoriasExcluidas.includes(categoria)) {
-          if (!produtosPorCat[categoria]) {
-            produtosPorCat[categoria] = [];
-          }
-          produtosPorCat[categoria].push(produto);
-          categoriasSet.add(categoria);
+        if (!produtosPorCat[categoria]) {
+          produtosPorCat[categoria] = [];
         }
+        produtosPorCat[categoria].push(produto);
+        categoriasSet.add(categoria);
       });
         
       setProdutosPorCategoria(produtosPorCat);
       setCategoriasUnicas(Array.from(categoriasSet).sort());
-      console.log(`Exibindo ${produtosFiltrados.length} produtos em ${categoriasSet.size} categorias`);
+      console.log(`Exibindo ${todosProdutos.length} produtos em ${categoriasSet.size} categorias`);
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
       toast({
