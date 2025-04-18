@@ -1142,7 +1142,7 @@ export const produtos: Produto[] = [
   {
     id: "82-tenis-m",
     nome: "Tênis QIX Chorão Park - Lançamento QIX",
-    preco: 287.91,
+    preco: 289.90,
     precoAntigo: 350.0,
     imagem:
       "https://down-br.img.susercontent.com/file/sg-11134201-7rd71-lwydjjb3juyy68@resize_w450_nl.webp",
@@ -1155,7 +1155,7 @@ export const produtos: Produto[] = [
   {
     id: "83-tenis-m",
     nome: "Tênis Tesla Coil Masculino Feminino Skatista Casual Esportivo",
-    preco: 99.9,
+    preco: 79.90,
     precoAntigo: 130.0,
     imagem:
       "https://down-br.img.susercontent.com/file/br-11134207-7r98o-m2u1ovyyfchx7e@resize_w450_nl.webp",
@@ -1168,7 +1168,7 @@ export const produtos: Produto[] = [
   {
     id: "84-tenis-m",
     nome: "Tênis Tesla Coil Unissex Casual Esportivo",
-    preco: 106.4,
+    preco: 112.0,
     precoAntigo: 140.0,
     imagem:
       "https://down-br.img.susercontent.com/file/br-11134207-7r98o-m1pk1fywi5shb0@resize_w450_nl.webp",
@@ -1180,8 +1180,8 @@ export const produtos: Produto[] = [
   },
   {
     id: "85-tenis-m",
-    nome: "Tênis Qix Mountain Original QIX International",
-    preco: 427.41,
+    nome: "Tênis Qix Mountain Original QIX International Couro Esportivo Corrida Academia",
+    preco: 449.90,
     precoAntigo: 500.0,
     imagem:
       "https://down-br.img.susercontent.com/file/br-11134207-7r98o-lv1zvaaxn5vz17@resize_w450_nl.webp",
