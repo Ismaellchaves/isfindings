@@ -6,7 +6,7 @@ import HeaderBack from '@/components/HeaderBack';
 import { categorias } from '@/lib/dados';
 import { Button } from '@/components/ui/button';
 import { Produto } from '@/lib/tipos';
-import { obterTodosProdutos, configurarVerificacaoAtualizacao } from '@/utils/exampleData';
+import { listProducts } from '@/integrations/supabase/products';
 
 const Categorias: React.FC = () => {
   const [generoAtivo, setGeneroAtivo] = useState<'feminino' | 'masculino'>('feminino');
@@ -14,31 +14,14 @@ const Categorias: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadProdutos = () => {
+    const loadProdutos = async () => {
       setIsLoading(true);
-      // Carrega todos os produtos ao montar o componente
-      const produtos = obterTodosProdutos();
+      const produtos = await listProducts();
       setTodosProdutos(produtos);
       setIsLoading(false);
     };
 
     loadProdutos();
-    
-    // Event listener para atualizar produtos quando localStorage mudar
-    const handleStorageChange = () => {
-      console.log('Storage changed, reloading categories');
-      loadProdutos();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Configurar verificação de atualizações em outros dispositivos
-    const cleanupVerificacao = configurarVerificacaoAtualizacao(loadProdutos);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      cleanupVerificacao();
-    };
   }, []);
 
   // Filtra as categorias com base no gênero selecionado

@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Produto } from '@/lib/tipos';
-import { generateId } from '@/utils/id';
+// import { generateId } from '@/utils/id';
 import ProductCategorySelect from '@/components/ProductCategorySelect';
 import ProductImageUpload from '@/components/ProductImageUpload';
 import { 
@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { obterTodosProdutos, salvarProdutos } from '@/utils/exampleData';
+import { createProduct } from '@/integrations/supabase/products';
 
 const produtoSchema = z.object({
   nome: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
@@ -59,12 +59,12 @@ const CadastrarProduto: React.FC = () => {
     },
   });
 
-  const onSubmit = (values: ProdutoFormValues) => {
+  const onSubmit = async (values: ProdutoFormValues) => {
     setIsLoading(true);
 
     try {
       const novoProduto: Produto = {
-        id: generateId(),
+        id: '', // será definido pelo Supabase
         nome: values.nome,
         preco: parseFloat(values.preco),
         precoAntigo: values.precoAntigo ? parseFloat(values.precoAntigo) : undefined,
@@ -79,9 +79,7 @@ const CadastrarProduto: React.FC = () => {
         genero: values.genero,
       };
 
-      const produtos = obterTodosProdutos();
-      produtos.push(novoProduto);
-      salvarProdutos(produtos);
+      await createProduct(novoProduto);
       
       toast({
         title: "Produto cadastrado",

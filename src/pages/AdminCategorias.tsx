@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Produto } from '@/lib/tipos';
 import { categorias } from '@/lib/dados';
-import { garantirDadosExemplo, obterTodosProdutos, configurarVerificacaoAtualizacao } from '@/utils/exampleData';
+import { listProducts } from '@/integrations/supabase/products';
 
 const AdminCategorias: React.FC = () => {
   const navigate = useNavigate();
@@ -23,17 +23,12 @@ const AdminCategorias: React.FC = () => {
 
   useEffect(() => {
     loadProdutos();
-    const cleanupVerificacao = configurarVerificacaoAtualizacao(loadProdutos);
-    return () => {
-      cleanupVerificacao();
-    };
   }, []);
 
-  const loadProdutos = () => {
+  const loadProdutos = async () => {
     try {
       setLoading(true);
-      garantirDadosExemplo();
-      const todosProdutos = obterTodosProdutos();
+      const todosProdutos = await listProducts();
       setProdutos(todosProdutos);
         
       const produtosPorCat: Record<string, Produto[]> = {};

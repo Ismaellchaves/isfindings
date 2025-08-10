@@ -19,7 +19,7 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { Produto } from '@/lib/tipos';
-import { garantirDadosExemplo, obterTodosProdutos, salvarProdutos, configurarVerificacaoAtualizacao } from '@/utils/exampleData';
+import { listProducts, deleteProduct as supaDeleteProduct } from '@/integrations/supabase/products';
 
 const AdminCategoriaProdutos: React.FC = () => {
   const navigate = useNavigate();
@@ -31,26 +31,14 @@ const AdminCategoriaProdutos: React.FC = () => {
   const [produtoToDelete, setProdutoToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    // Garantir que existam dados de exemplo
-    garantirDadosExemplo();
     loadProdutos();
-    
-    // Configurar verificação de atualizações em outros dispositivos
-    const cleanupVerificacao = configurarVerificacaoAtualizacao(loadProdutos);
-    
-    return () => {
-      cleanupVerificacao();
-    };
   }, [categoria]);
 
-  const loadProdutos = () => {
+  const loadProdutos = async () => {
     try {
       setLoading(true);
-      // Obter todos os produtos (localStorage + dados.ts)
-      const todosProdutos = obterTodosProdutos();
+      const todosProdutos = await listProducts();
       setProdutos(todosProdutos);
-        
-      // Filtrar produtos pela categoria
       if (categoria) {
         const filtrados = todosProdutos.filter(
           p => p.categoria === decodeURIComponent(categoria)
@@ -74,13 +62,12 @@ const AdminCategoriaProdutos: React.FC = () => {
     setDeleteConfirmOpen(true);
   };
 
-  const confirmDeleteProduto = () => {
+  const confirmDeleteProduto = async () => {
     if (!produtoToDelete) return;
 
     try {
+      await supaDeleteProduct(produtoToDelete);
       const updatedProdutos = produtos.filter(p => p.id !== produtoToDelete);
-      // Usar nova função salvarProdutos para salvar e notificar
-      salvarProdutos(updatedProdutos);
       setProdutos(updatedProdutos);
       setProdutosFiltrados(prev => prev.filter(p => p.id !== produtoToDelete));
       

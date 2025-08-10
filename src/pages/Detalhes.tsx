@@ -5,7 +5,7 @@ import StatusBar from '@/components/StatusBar';
 import HeaderBack from '@/components/HeaderBack';
 import ProductCard from '@/components/ProductCard';
 import { Produto } from '@/lib/tipos';
-import { obterTodosProdutos, configurarVerificacaoAtualizacao } from '@/utils/exampleData';
+import { listProducts } from '@/integrations/supabase/products';
 
 const Detalhes: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,46 +16,21 @@ const Detalhes: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    const loadProdutoData = () => {
+    const loadProdutoData = async () => {
       setIsLoading(true);
-      
-      // Obter todos os produtos
-      const todosProdutos = obterTodosProdutos();
-      
-      // Encontrar o produto pelos parâmetros da URL
+      const todosProdutos = await listProducts();
       const produtoEncontrado = todosProdutos.find(p => p.id === id);
-      
       if (produtoEncontrado) {
         setProduto(produtoEncontrado);
-        
-        // Produtos similares (mesma categoria, excluindo o atual)
         const similares = todosProdutos
           .filter(p => p.id !== id && p.categoria === produtoEncontrado.categoria)
           .slice(0, 2);
-        
         setProdutosSimilares(similares);
       }
-      
       setIsLoading(false);
     };
 
     loadProdutoData();
-    
-    // Event listener para atualizar produto quando localStorage mudar
-    const handleStorageChange = () => {
-      console.log('Storage changed, reloading product details');
-      loadProdutoData();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Configurar verificação de atualizações em outros dispositivos
-    const cleanupVerificacao = configurarVerificacaoAtualizacao(loadProdutoData);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      cleanupVerificacao();
-    };
   }, [id]);
   
   if (isLoading) {

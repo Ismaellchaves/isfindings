@@ -21,7 +21,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { obterTodosProdutos, salvarProdutos } from '@/utils/exampleData';
+import { getProductById, updateProduct } from '@/integrations/supabase/products';
 
 const produtoSchema = z.object({
   nome: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
@@ -60,34 +60,34 @@ const EditarProduto: React.FC = () => {
   });
 
   useEffect(() => {
-    const todosProdutos = obterTodosProdutos();
-    const produto = todosProdutos.find(p => p.id === id);
-    
-    if (!produto) {
-      toast({
-        title: "Erro",
-        description: "Produto não encontrado.",
-        variant: "destructive",
-      });
-      navigate('/admin/produtos');
-      return;
-    }
+    (async () => {
+      const produto = await getProductById(id as string);
+      if (!produto) {
+        toast({
+          title: "Erro",
+          description: "Produto não encontrado.",
+          variant: "destructive",
+        });
+        navigate('/admin/produtos');
+        return;
+      }
 
-    form.reset({
-      nome: produto.nome,
-      preco: produto.preco.toString(),
-      precoAntigo: produto.precoAntigo ? produto.precoAntigo.toString() : '',
-      categoria: produto.categoria,
-      descricao: produto.descricao,
-      imagem: produto.imagem,
-      link: produto.link || '',
-      cores: produto.cores ? produto.cores.join(', ') : '',
-      tamanhos: produto.tamanhos ? produto.tamanhos.join(', ') : '',
-      genero: produto.genero || 'unissex',
-    });
+      form.reset({
+        nome: produto.nome,
+        preco: produto.preco.toString(),
+        precoAntigo: produto.precoAntigo ? produto.precoAntigo.toString() : '',
+        categoria: produto.categoria,
+        descricao: produto.descricao,
+        imagem: produto.imagem,
+        link: produto.link || '',
+        cores: produto.cores ? produto.cores.join(', ') : '',
+        tamanhos: produto.tamanhos ? produto.tamanhos.join(', ') : '',
+        genero: produto.genero || 'unissex',
+      });
+    })();
   }, [id, navigate, form]);
 
-  const onSubmit = (values: ProdutoFormValues) => {
+  const onSubmit = async (values: ProdutoFormValues) => {
     setIsLoading(true);
 
     try {
@@ -106,14 +106,7 @@ const EditarProduto: React.FC = () => {
         status: 'ativo',
       };
 
-      const todosProdutos = obterTodosProdutos();
-      
-      const index = todosProdutos.findIndex(p => p.id === id);
-      if (index === -1) throw new Error("Produto não encontrado");
-      
-      todosProdutos[index] = produtoAtualizado;
-      
-      salvarProdutos(todosProdutos);
+      await updateProduct(id as string, produtoAtualizado);
       
       toast({
         title: "Produto atualizado",

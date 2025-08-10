@@ -39,7 +39,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { categorias } from '@/lib/dados';
-import { garantirDadosExemplo, obterTodosProdutos, salvarProdutos, configurarVerificacaoAtualizacao } from '@/utils/exampleData';
+import { listProducts, deleteProduct as supaDeleteProduct } from '@/integrations/supabase/products';
 
 const AdminProdutos: React.FC = () => {
   const navigate = useNavigate();
@@ -63,17 +63,7 @@ const AdminProdutos: React.FC = () => {
     .filter(gender => gender && gender.trim() !== '');
 
   useEffect(() => {
-    // Garantir que existam dados de exemplo
-    garantirDadosExemplo();
-    // Carregar produtos
     loadProdutos();
-    
-    // Configurar verificação de atualizações em outros dispositivos
-    const cleanupVerificacao = configurarVerificacaoAtualizacao(loadProdutos);
-    
-    return () => {
-      cleanupVerificacao();
-    };
   }, []);
 
   useEffect(() => {
@@ -106,11 +96,10 @@ const AdminProdutos: React.FC = () => {
     setCurrentPage(1); // Reset to first page on filter change
   }, [searchTerm, filterCategory, filterGender, produtos]);
 
-  const loadProdutos = () => {
+  const loadProdutos = async () => {
     try {
       setLoading(true);
-      // Obter todos os produtos (localStorage + dados.ts)
-      const todosProdutos = obterTodosProdutos();
+      const todosProdutos = await listProducts();
       setProdutos(todosProdutos);
       setFilteredProdutos(todosProdutos);
     } catch (error) {
@@ -130,16 +119,14 @@ const AdminProdutos: React.FC = () => {
     setDeleteConfirmOpen(true);
   };
 
-  const confirmDeleteProduto = () => {
+  const confirmDeleteProduto = async () => {
     if (!produtoToDelete) return;
 
     try {
+      await supaDeleteProduct(produtoToDelete);
       const updatedProdutos = produtos.filter(p => p.id !== produtoToDelete);
-      // Usar a nova função salvarProdutos para salvar e notificar
-      salvarProdutos(updatedProdutos);
       setProdutos(updatedProdutos);
       setFilteredProdutos(prev => prev.filter(p => p.id !== produtoToDelete));
-      
       toast({
         title: "Produto excluído",
         description: "O produto foi excluído com sucesso.",

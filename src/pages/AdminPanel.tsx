@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from "@/hooks/use-toast";
 import { Produto } from '@/lib/tipos';
 import { categorias } from '@/lib/dados';
-import { garantirDadosExemplo, obterTodosProdutos } from '@/utils/exampleData';
+import { listProducts } from '@/integrations/supabase/products';
 
 const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
@@ -15,34 +15,21 @@ const AdminPanel: React.FC = () => {
   const [categoriasCount, setCategoriasCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Verificar se o usuário está autenticado como administrador
-  useEffect(() => {
-    const isAdmin = localStorage.getItem('isAdmin');
-    if (!isAdmin) {
-      navigate('/perfil');
-    }
-  }, [navigate]);
+  // Verificação simples (agora via Supabase) será feita nas rotas protegidas
 
   // Carregar contagem de produtos e categorias
   useEffect(() => {
     try {
       setIsLoading(true);
-      
-      // Garantir que existam dados de exemplo e que todos os produtos de dados.ts estejam presentes
-      garantirDadosExemplo();
-
-      // Carregar todos os produtos
-      const todosProdutos = obterTodosProdutos();
-      setProdutosCount(todosProdutos.length);
-      
-      // Extrair categorias únicas
-      const categoriasUnicas = new Set([
-        ...todosProdutos.map(produto => produto.categoria),
-        ...categorias.map(categoria => categoria.nome)
-      ]);
-      
-      setCategoriasCount(categoriasUnicas.size);
-      console.log(`Carregados ${todosProdutos.length} produtos em ${categoriasUnicas.size} categorias`);
+      (async () => {
+        const todosProdutos = await listProducts();
+        setProdutosCount(todosProdutos.length);
+        const categoriasUnicas = new Set([
+          ...todosProdutos.map(produto => produto.categoria),
+          ...categorias.map(categoria => categoria.nome)
+        ]);
+        setCategoriasCount(categoriasUnicas.size);
+      })();
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
       toast({

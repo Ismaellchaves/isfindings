@@ -9,7 +9,7 @@ import PromoBanner from '@/components/PromoBanner';
 import CategoryList from '@/components/CategoryList';
 import ProductCard from '@/components/ProductCard';
 import { Produto } from '@/lib/tipos';
-import { obterTodosProdutos, configurarVerificacaoAtualizacao, limparProdutosExemplo } from '@/utils/exampleData';
+import { listProducts } from '@/integrations/supabase/products';
 
 const Index: React.FC = () => {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -17,29 +17,16 @@ const Index: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const limit = 4; // Limite inicial de produtos exibidos
 
-  // Função para carregar produtos
-  const loadProdutos = () => {
+  const loadProdutos = async () => {
     setIsLoading(true);
     try {
-      // Remover produtos de exemplo que causam bug
-      limparProdutosExemplo();
-      
-      const todosProdutos = obterTodosProdutos();
-      // Ordenar produtos por data de publicação (mais recentes primeiro)
+      const todosProdutos = await listProducts();
       const sortedProdutos = todosProdutos.sort((a, b) => {
         const dateA = a.data_publicacao ? new Date(a.data_publicacao).getTime() : 0;
         const dateB = b.data_publicacao ? new Date(b.data_publicacao).getTime() : 0;
         return dateB - dateA;
       });
       setProdutos(sortedProdutos);
-      
-      // Notificação para novos produtos (apenas em atualizações, não no carregamento inicial)
-      if (!isLoading && sortedProdutos.length > produtos.length) {
-        toast({
-          title: "Novos produtos disponíveis",
-          description: "Novos produtos foram adicionados à loja.",
-        });
-      }
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
     } finally {
@@ -50,26 +37,6 @@ const Index: React.FC = () => {
   useEffect(() => {
     // Carregar produtos inicialmente
     loadProdutos();
-
-    // Event listener para atualizar produtos quando localStorage mudar
-    const handleStorageChange = () => {
-      console.log('Storage changed, reloading products on home page');
-      loadProdutos();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Configurar verificação de atualizações em outros dispositivos
-    const cleanupVerificacao = configurarVerificacaoAtualizacao(loadProdutos);
-    
-    // Atualizar a cada 30 segundos para garantir que novos produtos sejam exibidos
-    const intervalId = setInterval(loadProdutos, 30000);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      cleanupVerificacao();
-      clearInterval(intervalId);
-    };
   }, []);
 
   // Decide quantos produtos mostrar com base no estado `showAll`

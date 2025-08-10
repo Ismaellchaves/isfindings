@@ -6,7 +6,7 @@ import HeaderBack from '@/components/HeaderBack';
 import ProductCard from '@/components/ProductCard';
 import { categorias } from '@/lib/dados';
 import { Produto } from '@/lib/tipos';
-import { obterTodosProdutos, configurarVerificacaoAtualizacao } from '@/utils/exampleData';
+import { listProducts } from '@/integrations/supabase/products';
 
 const CategoriaDetalhe: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,44 +15,21 @@ const CategoriaDetalhe: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadCategoriaData = () => {
+    const loadCategoriaData = async () => {
       setIsLoading(true);
-      // Encontra a categoria com base no ID
       const categoriaEncontrada = categorias.find(cat => cat.id === id);
-
       if (categoriaEncontrada) {
         setCategoria(categoriaEncontrada.nome);
-
-        // Obter todos os produtos
-        const todosProdutos = obterTodosProdutos();
-
-        // Filtra produtos pela categoria
+        const todosProdutos = await listProducts();
         const produtosDaCategoria = todosProdutos.filter(produto => 
           produto.categoria.toLowerCase() === categoriaEncontrada.id.split('-')[0].toLowerCase()
         );
-
         setProdutosFiltrados(produtosDaCategoria);
       }
       setIsLoading(false);
     };
 
     loadCategoriaData();
-    
-    // Event listener para atualizar produtos quando localStorage mudar
-    const handleStorageChange = () => {
-      console.log('Storage changed, reloading category products');
-      loadCategoriaData();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Configurar verificação de atualizações em outros dispositivos
-    const cleanupVerificacao = configurarVerificacaoAtualizacao(loadCategoriaData);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      cleanupVerificacao();
-    };
   }, [id]);
 
   return (
