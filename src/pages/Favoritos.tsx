@@ -6,8 +6,8 @@ import ProductCard from '@/components/ProductCard';
 import { produtos } from '@/lib/dados';
 
 const Favoritos: React.FC = () => {
-  // Simular alguns produtos favoritos
-  const produtosFavoritos = produtos.slice(0, 4);
+  // Lista de favoritos vazia por padrão (será implementado com persistência futuramente)
+  const produtosFavoritos: typeof produtos = [];
   
   return (
     <>
