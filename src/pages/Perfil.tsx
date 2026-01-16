@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Perfil: React.FC = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -22,28 +23,44 @@ const Perfil: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    const adminStatus = localStorage.getItem('isAdmin');
-    setIsAdmin(adminStatus === 'true');
+    // Check Supabase auth session
+    supabase.auth.getSession().then(({ data }) => {
+      setIsAdmin(!!data.session);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAdmin(!!session);
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     
-    if (email === 'isfindings@gmail.com' && password === 'IS123') {
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      if (authError) throw authError;
+      
       setIsLoginOpen(false);
-      setIsAdmin(true);
-      localStorage.setItem('isAdmin', 'true');
       toast({
         title: "Acesso autorizado",
         description: "Bem-vindo à área restrita.",
       });
       navigate('/admin');
-    } else {
-      setError('Acesso negado. Verifique suas credenciais.');
+    } catch (err: any) {
+      setError(err.message || 'Acesso negado. Verifique suas credenciais.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -179,7 +196,9 @@ const Perfil: React.FC = () => {
               <Button variant="outline" type="button" onClick={() => setIsLoginOpen(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">Acessar</Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Entrando..." : "Acessar"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
